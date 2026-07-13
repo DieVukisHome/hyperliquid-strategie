@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+backtest/data/
+*.csv
+*.rtf
+.DS_Store
