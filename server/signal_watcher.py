@@ -180,10 +180,13 @@ def update_outcomes(con, bars, trades):
         con.execute(
             "INSERT INTO outcomes(signal_id,engine_r,exit_t,exit_reason,fwd24,fwd72,fwd168,"
             "r24,r72,r168,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?) "
-            "ON CONFLICT(signal_id) DO UPDATE SET engine_r=excluded.engine_r,"
-            "exit_t=excluded.exit_t,exit_reason=excluded.exit_reason,fwd24=excluded.fwd24,"
-            "fwd72=excluded.fwd72,fwd168=excluded.fwd168,r24=excluded.r24,r72=excluded.r72,"
-            "r168=excluded.r168,updated_at=excluded.updated_at",
+            "ON CONFLICT(signal_id) DO UPDATE SET "
+            "engine_r=CASE WHEN outcomes.exit_reason LIKE 'manual_%' THEN outcomes.engine_r ELSE excluded.engine_r END,"
+            "exit_t=CASE WHEN outcomes.exit_reason LIKE 'manual_%' THEN outcomes.exit_t ELSE excluded.exit_t END,"
+            "exit_reason=CASE WHEN outcomes.exit_reason LIKE 'manual_%' THEN outcomes.exit_reason ELSE excluded.exit_reason END,"
+            "fwd24=excluded.fwd24,fwd72=excluded.fwd72,fwd168=excluded.fwd168,"
+            "r24=excluded.r24,r72=excluded.r72,r168=excluded.r168,"
+            "updated_at=excluded.updated_at",
             (sid, vals['engine_r'], vals['exit_t'], vals['exit_reason'], vals['fwd24'],
              vals['fwd72'], vals['fwd168'], vals['r24'], vals['r72'], vals['r168'],
              int(time.time())))
