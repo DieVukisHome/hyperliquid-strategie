@@ -83,7 +83,8 @@ Die CSVs (`backtest/data/*.csv`) sind absichtlich **nicht** im Repo (groß) — 
 - **Formaler Walk-Forward** von ER_MIN/rev (Plateaus gesehen, aber nicht IS-blind bestätigt).
 - ~~Reversal-Roadblock-Verschärfung~~ ERLEDIGT 14.7.: band/reclaim-Varianten fallen OOS durch;
   das eigentliche Messer-Problem waren die bcr/rev-Trades → via BCR_WT_ONLY=1 gelöst.
-- **Pine v20 → v21:** BCR_WT_ONLY-Gate in TBD_WM_SAR_v20_champion.pine nachziehen.
+- ~~Pine v20 → v21~~ ERLEDIGT 14.7.: TBD_WM_SAR_v21_champion.pine (bcrWtOnly-Input, default an),
+  live im TV-Slot „TBD Method Codex Fork v21" (Version 84) kompiliert.
 - **Deployment:** server/-Paket gebaut (14.7.): Watcher+Bewerter+Kalibrier-Report, Shadow-Modus.
   Offen: launchd auf dem MacBook aktivieren, Briefing um `{"bias": ...}`-Zeile ergänzen,
   Binance-Signal ↔ Hyperliquid-Fill-Abgleich. Executor ERST nach bestandener Kalibrierung.
