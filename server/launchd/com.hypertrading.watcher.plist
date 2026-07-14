@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>com.hypertrading.watcher</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>REPO_DIR/server/signal_watcher.py</string>
+        <string>--loop</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>SYMBOL</key><string>BTCUSDT</string>
+        <key>EVAL_ON</key><string>1</string>
+        <key>BRIEFING_DIR</key><string>BRIEFING_DIR_HIER_EINTRAGEN</string>
+        <key>PATH</key><string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+    </dict>
+    <key>KeepAlive</key><true/>
+    <key>RunAtLoad</key><true/>
+    <key>StandardOutPath</key><string>REPO_DIR/server/watcher.log</string>
+    <key>StandardErrorPath</key><string>REPO_DIR/server/watcher.err.log</string>
+</dict>
+</plist>

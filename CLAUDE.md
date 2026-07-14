@@ -19,6 +19,7 @@ immer das Perp-Symbol nutzen.
 
 ```
 MTF_ON=1  BCR_ON=1  BCR_FLAT=1  BIAS_MODE=h4  NOPYR=1 (Einzelposition)
+BCR_WT_ONLY=1                                 # NEU (14.7.26): BCR nur with-trend, nie als Reversal
 REV_1D=0.066  REV_4H=0.033  REV_1H=0.0165     # ZigZag rev% pro TF (Marktstruktur/BoS)
 ER_N=30  ER_MIN=0.20                          # Efficiency-Ratio-Clarity-Filter auf 4h
 VEC_MULT=99 (M/W-Vektor-P1/P3 AUS)  LV_VEC_MULT=1.5 (Level-Vektor)
@@ -27,8 +28,15 @@ RISK=0.01  MAX_LEV=10                          # 1% Risiko/Trade; optional VT_ON
 ```
 
 Gate-Logik: Bias = 4h-BoS-Trend. **With-Trend** wenn 1h-Level<3 (+1D-Makro-Zustimmung);
-**Reversal** (Counter-Trend) nur an 4h-Level-3 + Roadblock (HOW/LOW/HOD/LOD ±0,5%);
+**Reversal** (Counter-Trend) nur an 4h-Level-3 + Roadblock (HOW/LOW/HOD/LOD ±0,5%),
+und NUR per M/W-Formation (BCR_WT_ONLY=1: BCR ist Continuation-Pattern, kein Reversal-Trigger);
 Entry nur wenn 4h-ER ≥ 0,20 (Clarity). Exit = reiner SAR-Runner (kein TP), Flip aufs Gegensignal.
+
+**v21-Befund (14.7.26, Trade-Tagging wt/rev):** bcr/rev war das Leck (N31, −24R, PF0.14);
+mw/rev ist der stärkste Block (PF>6). Mit BCR_WT_ONLY=1: **+408% / DD21% / OOS +62% (PF3.44)**
+statt +328/DD27/OOS+60. Robust in allen Param-Nachbarschaften (REV_4H 0.030/0.036, ER 0.17/0.24:
+8/8 besser, entschärft die REV_4H-Klippe), ETH 1J neutral, VIRTUAL 1J leicht schwächer (N=5-Rauschen).
+Roadblock-Verschärfung (RB_MODE band/reclaim) + SVC-Volumen-Gate (REV_VOL) getestet → fallen OOS durch, AUS lassen.
 
 ## Dateien
 
@@ -39,6 +47,8 @@ Entry nur wenn 4h-ER ≥ 0,20 (Clarity). Exit = reiner SAR-Runner (kein TP), Fli
 - `wm_sar_mtf_walkforward.py` — Walk-Forward über die Level-Detektions-Params.
 - `TBD_WM_SAR_v20_champion.pine` — Pine-`strategy()`-Port (TradingView), Einzelposition, mit Markern.
 - `backtest/fetch_binance_data.py` — Daten holen (Binance public Futures-API, kein Key).
+- `server/` — Live-Signal-Watcher + asymmetrischer KI-Bewerter (Shadow-Modus), siehe server/README.md.
+  Engine loggt jetzt ALLE Signal-Events inkl. Gate-Grund in `wm_sar_mtf.LAST_SIGNALS` (~1-2/Tag).
 
 ## Setup / Backtest
 
@@ -71,6 +81,9 @@ Die CSVs (`backtest/data/*.csv`) sind absichtlich **nicht** im Repo (groß) — 
 - **Cross-coin** (ETH/VIRTUAL) — wichtigster Robustheitstest, bisher alles BTC.
 - **Funding/Slippage** modellieren für realistische Netto-Zahlen.
 - **Formaler Walk-Forward** von ER_MIN/rev (Plateaus gesehen, aber nicht IS-blind bestätigt).
-- **Reversal-Roadblock** ist locker (feuert wenn Preis *unter* Wochen-/Tagestief statt *daran*) —
-  fängt fallende Messer; „nahe am Level"-Verschärfung testen.
-- **Deployment:** Watchdog/Heartbeat für den always-on Server; Binance-Signal ↔ Hyperliquid-Fill-Abgleich.
+- ~~Reversal-Roadblock-Verschärfung~~ ERLEDIGT 14.7.: band/reclaim-Varianten fallen OOS durch;
+  das eigentliche Messer-Problem waren die bcr/rev-Trades → via BCR_WT_ONLY=1 gelöst.
+- **Pine v20 → v21:** BCR_WT_ONLY-Gate in TBD_WM_SAR_v20_champion.pine nachziehen.
+- **Deployment:** server/-Paket gebaut (14.7.): Watcher+Bewerter+Kalibrier-Report, Shadow-Modus.
+  Offen: launchd auf dem MacBook aktivieren, Briefing um `{"bias": ...}`-Zeile ergänzen,
+  Binance-Signal ↔ Hyperliquid-Fill-Abgleich. Executor ERST nach bestandener Kalibrierung.

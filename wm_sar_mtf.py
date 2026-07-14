@@ -32,8 +32,8 @@ WICK_FRAC   = 0.50
 EMA_LEN     = 50
 REV_WICK    = 0.50
 REV_BODY    = 0.40
-TP1_R       = 100.0   # praktisch nie -> reine Runner
-TP1_FRAC    = 0.75     # 75% bei TP1 zu
+TP1_R       = float(os.environ.get('TP1_R','100.0'))   # 100 = praktisch nie -> reine Runner
+TP1_FRAC    = float(os.environ.get('TP1_FRAC','0.75')) # Anteil der bei TP1 geschlossen wird
 COMMISSION  = 0.00045
 INIT_CAP    = 10000.0
 LOOKBACK_D  = 1600
@@ -51,7 +51,22 @@ MTF_MACRO   = os.environ.get('MTF_MACRO','1')=='1'   # 1D-Makro muss With-Trend 
 BIAS_MODE   = os.environ.get('BIAS_MODE','h4')       # h4 = 4h-Bias | conf = 1D&4h-Konfluenz
 ER_MIN      = float(os.environ.get('ER_MIN','0.0'))  # Mindest-Clarity (4h-ER) zum Entry
 CC_BIAS     = os.environ.get('CC_BIAS','0')=='1'     # Bias/Level aus Zyklus-Zähler (cycle_counter) statt levels_mtf-BoS
+DIAG_T0     = int(os.environ.get('DIAG_T0','0'))     # Diagnose-Fenster (nur Ausgabe, keine Logik)
+DIAG_T1     = int(os.environ.get('DIAG_T1','0'))
 MTF_RBTOL   = float(os.environ.get('MTF_RBTOL','0.005'))  # Roadblock-Naehe-Toleranz
+RB_MODE     = os.environ.get('RB_MODE','off')    # off|band|reclaim — Verschärfung Reversal-Roadblock (TBD: Docht durch Level ok, Vollkörper-Close jenseits = ungültig)
+RB_BAND     = float(os.environ.get('RB_BAND','0.02'))   # band: Close max X% JENSEITS des Levels (kein fallendes Messer)
+RB_LB       = int(os.environ.get('RB_LB','16'))         # reclaim: Level muss in letzten N Bars touchiert worden sein
+REV_VOL     = float(os.environ.get('REV_VOL','0'))      # SVC-Proxy: Reversal-Signalkerze braucht Vol >= X*SMA10 (0=aus)
+BCR_WT_ONLY = os.environ.get('BCR_WT_ONLY','0')=='1'    # BCR = Continuation-Pattern -> nur with-trend, nie als Reversal (TBD)
+BE_R        = float(os.environ.get('BE_R','0'))         # SL->Entry sobald +X R erreicht (0=aus)
+EXIT_RAW    = os.environ.get('EXIT_RAW','off')          # off|mw|all — Gegensignal schliesst Position auch wenn Entry-Gate es blockt
+TP1R_ENV    = float(os.environ.get('TP1_R','0'))        # >0: TP1 bei X R (Anteil TP1_FRAC), sonst reiner Runner
+TP1F_ENV    = float(os.environ.get('TP1_FRAC','0'))
+
+# Signal-Capture (Live-Watcher/Diagnose): run() fuellt LAST_SIGNALS mit ALLEN
+# Signal-Events inkl. Gate-Entscheidung ('pass' oder Block-Grund) + Kontext.
+LAST_SIGNALS = []
 TDIR_ON     = os.environ.get('TDIR_ON','0')=='1'
 TDIR_MODE   = os.environ.get('TDIR_MODE','slope')   # slope|ema800|stack
 TDIR_N      = int(os.environ.get('TDIR_N','480'))
@@ -159,15 +174,19 @@ def w_wick_limit(b):
 class Trade:
     dir: int; entry_t: int; entry: float
     exit_t: int = 0; exit: float = 0.0; reason: str = ""
-    r: float = 0.0; equity_after: float = 0.0
+    r: float = 0.0; equity_after: float = 0.0; tag: str = ""
 
 
 class Lot:
     __slots__ = ("dir","entry","entry_t","sl","sl_init","qty_total","qty_open",
-                 "realized","partial_done","tp1","eq_entry","risk_pu")
+                 "realized","partial_done","tp1","eq_entry","risk_pu","tag")
 
 
 def run(bars, log_window=None):
+    global LAST_SIGNALS
+    LAST_SIGNALS = []
+    def _sig_rec(ev, gate):
+        ev['gate'] = gate; LAST_SIGNALS.append(ev)
     highs = [b.h for b in bars]
     lows  = [b.l for b in bars]
     ema   = ema_series([b.c for b in bars], EMA_LEN)
@@ -249,7 +268,7 @@ def run(bars, log_window=None):
     def _size_factor():
         if not RO_ON or len(trades)<RO_K: return 1.0
         return RO_LOW if sum(tt.r for tt in trades[-RO_K:])< RO_TH else 1.0
-    def open_lot(d, px, t, sl0):
+    def open_lot(d, px, t, sl0, tag=''):
         nonlocal equity
         risk_pu = abs(px - sl0)
         if risk_pu <= 0:
@@ -257,6 +276,7 @@ def run(bars, log_window=None):
         q = (equity * RISK * _size_factor() * _vt_now) / risk_pu
         q = min(q, MAX_LEV * equity / px)
         L = Lot()
+        L.tag = tag
         L.dir = d; L.entry = px; L.entry_t = t; L.sl = sl0; L.sl_init = sl0
         L.qty_total = q; L.qty_open = q; L.realized = 0.0; L.partial_done = False
         L.tp1 = px + d * TP1_R * risk_pu; L.eq_entry = equity; L.risk_pu = risk_pu
@@ -278,7 +298,7 @@ def run(bars, log_window=None):
         total = L.realized + rest
         denom = L.risk_pu * L.qty_total
         r = total / denom if denom > 0 else 0.0
-        trades.append(Trade(L.dir, L.entry_t, L.entry, t, px, reason, r, equity))
+        trades.append(Trade(L.dir, L.entry_t, L.entry, t, px, reason, r, equity, getattr(L, 'tag', '')))
         Lg(t, f"CLOSE {'L' if L.dir==1 else 'S'} @{px:.1f} ({reason}) r={r:+.2f} eq={equity:.0f}")
 
     for i in range(n):
@@ -296,6 +316,11 @@ def run(bars, log_window=None):
             if not L.partial_done:
                 if (L.dir == 1 and b.h >= L.tp1) or (L.dir == -1 and b.l <= L.tp1):
                     take_tp1(L, b.t)
+            if BE_R > 0:
+                be_hit = (L.dir == 1 and b.h >= L.entry + BE_R*L.risk_pu) or \
+                         (L.dir == -1 and b.l <= L.entry - BE_R*L.risk_pu)
+                if be_hit:
+                    L.sl = max(L.sl, L.entry) if L.dir == 1 else min(L.sl, L.entry)
         if not lots:
             prevM_high = prevW_low = None
 
@@ -415,8 +440,14 @@ def run(bars, log_window=None):
             for d, sig_on, sl_ref, tag in sigs:
                 if not sig_on:
                     continue
+                _ttag = tag
+                _ev = dict(t=b.t, dir=d, tag=tag, px=b.c, sl_ref=sl_ref)
+                if MTF_ON and DIAG_T1 and DIAG_T0 <= b.t <= DIAG_T1:
+                    _b4d=_ctx['4h']['cyc'][i]; _l4d=_ctx['4h']['level'][i] or 0; _l1d=_ctx['1h']['level'][i] or 0; _d1d=_ctx['1D']['cyc'][i]; _erd=_ctx['4h']['er'][i] or 0.0
+                    _erok='ok' if _erd>=ER_MIN else 'LOWER'
+                    print(f"  {_u2(b.t)} SIG {'LONG ' if d==1 else 'SHORT'}/{tag} @{b.c:.0f}  4hBias{_b4d:+d} 4hL{_l4d} 1hL{_l1d} 1D{_d1d:+d} ER{_erd:.2f}({_erok})  {'WITH-TREND' if d==_b4d else 'REVERSAL'}  pos={len(lots)}")
                 if HTF_ON and bias[i]!=d:
-                    continue
+                    _sig_rec(_ev, 'htf'); continue
                 if MTF_ON:
                     if CC_BIAS:                           # Bias/Level aus Zyklus-Zähler
                         _b4=_cc_d4[i]; _l4=_cc_l4[i] or 0; _l1=_cc_l1h[i] or 0; _d1=_cc_d1[i]
@@ -425,34 +456,65 @@ def run(bars, log_window=None):
                         _l1   = _ctx['1h']['level'][i] or 0
                         _l4   = _ctx['4h']['level'][i] or 0
                         _d1   = _ctx['1D']['cyc'][i]      # 1D-Makro
+                    _ev.update(bias4=_b4, l1=_l1, l4=_l4, d1=_d1,
+                               er=round((_ctx['4h']['er'][i] or 0), 3))
                     if BIAS_MODE == 'conf':
                         # Bias nur wenn 1D UND 4h übereinstimmen, sonst aussetzen (Konfluenz)
                         if _d1 == 0 or _b4 == 0 or _d1 != _b4:
-                            continue
+                            _sig_rec(_ev, 'bias_conf'); continue
                         _bias = _b4
                     else:
                         _bias = _b4
                     if _bias == 0:
-                        continue                          # kein klarer Bias -> aussetzen
+                        _sig_rec(_ev, 'bias0'); continue  # kein klarer Bias -> aussetzen
+                    _ev['side'] = 'wt' if d == _bias else 'rev'
                     if ER_MIN > 0 and (_ctx['4h']['er'][i] or 0) < ER_MIN:
-                        continue                          # Levels am Bias-TF nicht klar genug -> aussetzen
+                        _sig_rec(_ev, 'er_low'); continue # Levels am Bias-TF nicht klar genug -> aussetzen
+                    _ttag = tag + ('/wt' if d == _bias else '/rev')
+                    if BCR_WT_ONLY and tag == 'bcr' and d != _bias:
+                        _sig_rec(_ev, 'bcr_wt_only'); continue  # BCR ist Continuation, kein Reversal-Trigger
                     if d == _bias:
                         # WITH-TREND: nur in fruehem/mittlerem 1h-Level (L1->L2), nicht in L3-Erschoepfung
                         if _l1 >= 3:
-                            continue
+                            _sig_rec(_ev, 'wt_l1max'); continue
                         if MTF_MACRO and _d1 != 0 and _d1 != d:
-                            continue                      # 1D-Makro muss mit-tragen
+                            _sig_rec(_ev, 'wt_macro'); continue  # 1D-Makro muss mit-tragen
                     else:
                         # COUNTER-TREND REVERSAL: nur an 4h-L3-Erschoepfung + am Roadblock
                         if _l4 < 3:
-                            continue
+                            _sig_rec(_ev, 'rev_l4'); continue
                         HOD,LOD,HOW,LOW = _kl[i]; px = b.c
-                        if d == 1:
-                            near = (LOW and px <= LOW*(1+MTF_RBTOL)) or (LOD and px <= LOD*(1+MTF_RBTOL))
+                        _lv_all = [x for x in (HOD,LOD,HOW,LOW) if x]
+                        if _lv_all:
+                            _ev['rb_dist'] = round(min(abs(px-x)/x for x in _lv_all), 5)
+                        if RB_MODE == 'band':
+                            # TBD-Verschärfung: Close darf max RB_BAND jenseits des Levels liegen
+                            # (Docht-Stop-Hunt ok, aber kein fallendes Messer weit unterm Level)
+                            if d == 1:
+                                near = (LOW and LOW*(1-RB_BAND) <= px <= LOW*(1+MTF_RBTOL)) or \
+                                       (LOD and LOD*(1-RB_BAND) <= px <= LOD*(1+MTF_RBTOL))
+                            else:
+                                near = (HOW and HOW*(1-MTF_RBTOL) <= px <= HOW*(1+RB_BAND)) or \
+                                       (HOD and HOD*(1-MTF_RBTOL) <= px <= HOD*(1+RB_BAND))
+                        elif RB_MODE == 'reclaim':
+                            # TBD-Snatch-Away: Level in letzten RB_LB Bars per Docht touchiert/durchstochen,
+                            # Signalkerze schliesst wieder DIESSEITS (kein Vollkoerper jenseits)
+                            _lo = min(lows[max(0,i-RB_LB+1):i+1]); _hi = max(highs[max(0,i-RB_LB+1):i+1])
+                            if d == 1:
+                                near = (LOW and _lo <= LOW*(1+MTF_RBTOL) and px >= LOW) or \
+                                       (LOD and _lo <= LOD*(1+MTF_RBTOL) and px >= LOD)
+                            else:
+                                near = (HOW and _hi >= HOW*(1-MTF_RBTOL) and px <= HOW) or \
+                                       (HOD and _hi >= HOD*(1-MTF_RBTOL) and px <= HOD)
                         else:
-                            near = (HOW and px >= HOW*(1-MTF_RBTOL)) or (HOD and px >= HOD*(1-MTF_RBTOL))
+                            if d == 1:
+                                near = (LOW and px <= LOW*(1+MTF_RBTOL)) or (LOD and px <= LOD*(1+MTF_RBTOL))
+                            else:
+                                near = (HOW and px >= HOW*(1-MTF_RBTOL)) or (HOD and px >= HOD*(1-MTF_RBTOL))
                         if not near:
-                            continue
+                            _sig_rec(_ev, 'rev_roadblock'); continue
+                        if REV_VOL > 0 and not (vol_sma[i] > 0 and b.v >= REV_VOL*vol_sma[i]):
+                            _sig_rec(_ev, 'rev_vol'); continue  # SVC-Proxy: Reversal braucht Volumen-Spike
                 if TDIR_ON:
                     _up=_dn=True
                     if TDIR_MODE=='slope' and i>=TDIR_N:
@@ -463,7 +525,7 @@ def run(bars, log_window=None):
                     elif TDIR_MODE=='stack':
                         _up=ema[i]>ema200[i]; _dn=ema[i]<ema200[i]
                     if (d==1 and not _up) or (d==-1 and not _dn):
-                        continue
+                        _sig_rec(_ev, 'tdir'); continue
                 if E200_ON and tag!='cte':
                     _rsp=(ema200[i]-ema200[i-CTE_N])/ema200[i] if i>=CTE_N else 0.0
                     _sdn = REGIME_ON and _rsp< -REG_TH and e is not None and e<ema200[i]*(1-REG_SEP)
@@ -485,7 +547,8 @@ def run(bars, log_window=None):
                         close_lot(L, b.c, b.t, "Flip")
                     lots.clear()
                     prevM_high = prevW_low = None
-                    open_lot(d, b.c, b.t, sl_ref)
+                    open_lot(d, b.c, b.t, sl_ref, _ttag)
+                    _sig_rec(_ev, 'pass_flip')
                     if d == 1: prevW_low = b.l
                     else:      prevM_high = b.h
                 else:
@@ -502,7 +565,22 @@ def run(bars, log_window=None):
                         prevM_high = b.h
                     # Pyramiding (aus im Single-Modus): nur wenn flat einen Lot
                     if (not NOPYR) or (not lots):
-                        open_lot(d, b.c, b.t, sl_ref)
+                        open_lot(d, b.c, b.t, sl_ref, _ttag)
+                        _sig_rec(_ev, 'pass')
+                    else:
+                        _sig_rec(_ev, 'samedir_trail')
+
+            # EXIT_RAW: rohes Gegensignal schliesst die Position, auch wenn das
+            # Entry-Gate (Bias/Level/ER/Roadblock) den Gegen-ENTRY blockt hat.
+            if EXIT_RAW != 'off' and lots:
+                _d0 = lots[0].dir
+                _rawL = wev or (EXIT_RAW == 'all' and bcrL)
+                _rawS = mev or (EXIT_RAW == 'all' and bcrS)
+                if (_d0 == 1 and _rawS) or (_d0 == -1 and _rawL):
+                    for L in lots[:]:
+                        close_lot(L, b.c, b.t, "RawFlip")
+                    lots.clear()
+                    prevM_high = prevW_low = None
 
         max_conc = max(max_conc, len(lots))
         peak = max(peak, equity); max_dd = max(max_dd, (peak - equity) / peak)
