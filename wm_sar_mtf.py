@@ -49,7 +49,8 @@ RO_LOW      = float(os.environ.get('RO_LOW','0.3'))
 MTF_ON      = os.environ.get('MTF_ON','0')=='1'
 MTF_MACRO   = os.environ.get('MTF_MACRO','1')=='1'   # 1D-Makro muss With-Trend mit-tragen
 BIAS_MODE   = os.environ.get('BIAS_MODE','h4')       # h4 = 4h-Bias | conf = 1D&4h-Konfluenz
-ER_MIN      = float(os.environ.get('ER_MIN','0.0'))  # Mindest-Clarity (4h-ER) zum Entry
+ER_MIN      = float(os.environ.get('ER_MIN','0.0'))  # Mindest-Clarity zum Entry
+ER_TF       = os.environ.get('ER_TF','4h')           # TF fuer den Clarity-Filter (4h|1h|1D); Fenster = ER_N Bars dieses TF
 CC_BIAS     = os.environ.get('CC_BIAS','0')=='1'     # Bias/Level aus Zyklus-Zähler (cycle_counter) statt levels_mtf-BoS
 DIAG_T0     = int(os.environ.get('DIAG_T0','0'))     # Diagnose-Fenster (nur Ausgabe, keine Logik)
 DIAG_T1     = int(os.environ.get('DIAG_T1','0'))
@@ -457,7 +458,7 @@ def run(bars, log_window=None):
                         _l4   = _ctx['4h']['level'][i] or 0
                         _d1   = _ctx['1D']['cyc'][i]      # 1D-Makro
                     _ev.update(bias4=_b4, l1=_l1, l4=_l4, d1=_d1,
-                               er=round((_ctx['4h']['er'][i] or 0), 3))
+                               er=round((_ctx[ER_TF]['er'][i] or 0), 3))
                     if BIAS_MODE == 'conf':
                         # Bias nur wenn 1D UND 4h übereinstimmen, sonst aussetzen (Konfluenz)
                         if _d1 == 0 or _b4 == 0 or _d1 != _b4:
@@ -468,7 +469,7 @@ def run(bars, log_window=None):
                     if _bias == 0:
                         _sig_rec(_ev, 'bias0'); continue  # kein klarer Bias -> aussetzen
                     _ev['side'] = 'wt' if d == _bias else 'rev'
-                    if ER_MIN > 0 and (_ctx['4h']['er'][i] or 0) < ER_MIN:
+                    if ER_MIN > 0 and (_ctx[ER_TF]['er'][i] or 0) < ER_MIN:
                         _sig_rec(_ev, 'er_low'); continue # Levels am Bias-TF nicht klar genug -> aussetzen
                     _ttag = tag + ('/wt' if d == _bias else '/rev')
                     if BCR_WT_ONLY and tag == 'bcr' and d != _bias:
