@@ -80,7 +80,9 @@ Die CSVs (`backtest/data/*.csv`) sind absichtlich **nicht** im Repo (groß) — 
 
 - **Cross-coin** (ETH/VIRTUAL) — wichtigster Robustheitstest, bisher alles BTC.
 - **Funding/Slippage** modellieren für realistische Netto-Zahlen.
-- **Formaler Walk-Forward** von ER_MIN/rev (Plateaus gesehen, aber nicht IS-blind bestätigt).
+- Formaler Walk-Forward: ~~ER_MIN~~ ERLEDIGT 14.7. (wm_sar_wf_ermin.py): fix 0.20 (+51R)
+  schlägt adaptive IS-Wahl (+40R), rho IS→OOS negativ → Wert fixiert lassen, NIE nachtunen;
+  Plateau hält OOS ohne Klippen. **rev-Parameter** stehen noch aus.
 - ~~Reversal-Roadblock-Verschärfung~~ ERLEDIGT 14.7.: band/reclaim-Varianten fallen OOS durch;
   das eigentliche Messer-Problem waren die bcr/rev-Trades → via BCR_WT_ONLY=1 gelöst.
 - ~~Pine v20 → v21~~ ERLEDIGT 14.7.: TBD_WM_SAR_v21_champion.pine (bcrWtOnly-Input, default an),
