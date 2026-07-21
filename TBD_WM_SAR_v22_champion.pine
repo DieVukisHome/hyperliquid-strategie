@@ -1,0 +1,402 @@
+//@version=5
+// TBD W/M SAR v22 — Champion (Multi-TF BoS-Struktur + ER-Clarity-Filter)
+// v22 (21.7.26): (a) BCR-200EMA-Regel — Break muss zur 15m-200EMA laufen, bevor der
+//   50EMA-Retest gilt (blockt Sofort-Signale nach Break); (b) Time-Stop: nach 5 Tagen
+//   unter +1R raus (Plateau 4-7d, cross-coin validiert).
+//   Python-Referenz v22: BTC 4J +460% / PF 3.75 / DD 18% / WR 21% / OOS +63%.
+// v21 (14.7.26): BCR_WT_ONLY — BCR ist Continuation-Pattern, nur with-trend,
+//   nie als Counter-Trend-Reversal (bcr/rev war das Leck: PF 0.14).
+//   Python-Referenz: +408% / DD 21% / OOS +62% (4J BTC Perp 15m).
+// Faithful Port von wm_sar_mtf.py. Einzelposition, SAR-Runner, kein TP.
+// Config: REV_1D 0.066 / 4H 0.033 / 1H 0.0165, ER_MIN 0.20, M/W + BCR-flat.
+strategy("TBD W/M SAR v22 Champion", overlay=true, initial_capital=10000, default_qty_type=strategy.fixed, default_qty_value=0, pyramiding=0, calc_on_every_tick=false, process_orders_on_close=true, commission_type=strategy.commission.percent, commission_value=0.045, max_labels_count=500, max_lines_count=500)
+
+// ================= INPUTS =================
+grpF = "Filter / Struktur"
+rev1d  = input.float(0.066, "rev 1D",  group=grpF, step=0.001)
+rev4h  = input.float(0.033, "rev 4H",  group=grpF, step=0.001)
+rev1h  = input.float(0.0165,"rev 1H",  group=grpF, step=0.001)
+erN    = input.int(30,      "ER Fenster (4h Bars)", group=grpF)
+erMin  = input.float(0.20,  "ER_MIN (Clarity)", group=grpF, step=0.01)
+lvVec  = input.float(1.5,   "Level-Vektor x SMA10", group=grpF, step=0.1)
+rbTol  = input.float(0.005, "Roadblock-Toleranz", group=grpF, step=0.001)
+useMacro = input.bool(true, "1D-Makro muss With-Trend tragen", group=grpF)
+
+grpE = "Entries"
+useMW  = input.bool(true, "M/W Entries", group=grpE)
+useBCR = input.bool(true, "BCR-flat Entries", group=grpE)
+bcrWtOnly = input.bool(true, "BCR nur with-trend (v21)", group=grpE, tooltip="BCR ist ein Continuation-Pattern: nie als Counter-Trend-Reversal-Trigger. Reversals nur per M/W.")
+bcrVec = input.float(1.5, "BCR-Vektor x SMA10", group=grpE, step=0.1)
+bcrWin = input.int(120,   "BCR Fenster (Bars)", group=grpE)
+bcrTol = input.float(0.0015,"BCR Retest-Toleranz", group=grpE, step=0.0005)
+bcr200On  = input.bool(true, "BCR: Break muss zur 200EMA laufen (v22)", group=grpE, tooltip="Retest erst gültig, wenn der Preis seit dem Break die 15m-200EMA erreicht hat (Long: High rauf, Short: Low runter).")
+bcr200Tol = input.float(0.002, "BCR 200EMA-Toleranz", group=grpE, step=0.001)
+swLB   = input.int(20,    "SL Swing-Lookback", group=grpE)
+
+grpR = "Risk"
+riskP  = input.float(1.0, "Risiko % / Trade", group=grpR, step=0.1)
+maxLev = input.float(10.0,"Max Hebel", group=grpR, step=1.0)
+tsD    = input.float(5.0, "Time-Stop Tage (0=aus) (v22)", group=grpR, step=1.0)
+tsR    = input.float(1.0, "Time-Stop R-Schwelle", group=grpR, step=0.5)
+
+// ================= HELPER =================
+f_isHammer(o,h,l,c) =>
+    rng = h - l
+    rng <= 0 ? false : (math.min(o,c) - l) >= 0.5*rng and math.abs(c-o) <= 0.4*rng
+f_isInvHammer(o,h,l,c) =>
+    rng = h - l
+    rng <= 0 ? false : (h - math.max(o,c)) >= 0.5*rng and math.abs(c-o) <= 0.4*rng
+
+// ---- Multi-TF Struktur (kausaler ZigZag BoS + Level-State) ----
+// gibt [trend(+1/-1/0), level(0..3)] zurueck. var-State laeuft im security-Kontext.
+f_struct(rev, vmult) =>
+    e50s = ta.ema(close, 50)
+    vsma = ta.sma(volume, 10)
+    vec = vsma > 0 and volume >= vmult*vsma
+    var float hi = high
+    var float lo = low
+    var int dirn = 0
+    var float prevSH = na
+    var float prevSL = na
+    var int trend = 0
+    var int level = 0
+    var int st = 0          // 0 SEEK 1 L1 2 BOARD1 3 L2 4 BOARD2 5 L3
+    var bool free = true
+    int ptyp = 0
+    float ppx = na
+    if dirn >= 0
+        if high > hi
+            hi := high
+        if low < hi*(1.0-rev)
+            ptyp := 1
+            ppx := hi
+            dirn := -1
+            lo := low
+    if ptyp == 0 and dirn <= 0
+        if low < lo
+            lo := low
+        if high > lo*(1.0+rev)
+            ptyp := -1
+            ppx := lo
+            dirn := 1
+            hi := high
+    if ptyp == 1
+        bosUp = not na(prevSH) and ppx > prevSH
+        if bosUp and trend != 1
+            trend := 1
+            level := 0
+            st := 0
+            free := true
+        else if trend == -1
+            if st == 1 or st == 3
+                st := st == 1 ? 2 : 4
+            free := true
+        prevSH := ppx
+    else if ptyp == -1
+        bosDn = not na(prevSL) and ppx < prevSL
+        if bosDn and trend != -1
+            trend := -1
+            level := 0
+            st := 0
+            free := true
+        else if trend == 1
+            if st == 1 or st == 3
+                st := st == 1 ? 2 : 4
+            free := true
+        prevSL := ppx
+    if trend != 0 and vec and free
+        beyond = (trend == 1 and close > e50s) or (trend == -1 and close < e50s)
+        if beyond
+            if st == 0 and level == 0
+                level := 1
+                st := 1
+                free := false
+            else if st == 2
+                level := 2
+                st := 3
+                free := false
+            else if st == 4
+                level := 3
+                st := 5
+                free := false
+    [trend, level]
+
+// ---- Efficiency Ratio ----
+f_er(n) =>
+    net = math.abs(close - close[n])
+    den = math.sum(math.abs(close - close[1]), n)
+    den > 0 ? net/den : 0.0
+
+// ================= MULTI-TF CONTEXT =================
+[d1d, l1d] = request.security(syminfo.tickerid, "D",   f_struct(rev1d, lvVec), lookahead=barmerge.lookahead_off)
+[d4h, l4h] = request.security(syminfo.tickerid, "240", f_struct(rev4h, lvVec), lookahead=barmerge.lookahead_off)
+[d1h, l1h] = request.security(syminfo.tickerid, "60",  f_struct(rev1h, lvVec), lookahead=barmerge.lookahead_off)
+er4h       = request.security(syminfo.tickerid, "240", f_er(erN), lookahead=barmerge.lookahead_off)
+
+// ================= KEY LEVELS (HOW/LOW/HOD/LOD, 17:00 NY) =================
+// Anker: Tag/Woche 17:00 NY. Nutze 'America/New_York'; letzte abgeschlossene Periode.
+hod = request.security(syminfo.tickerid, "D", high[1], lookahead=barmerge.lookahead_off)
+lod = request.security(syminfo.tickerid, "D", low[1],  lookahead=barmerge.lookahead_off)
+how = request.security(syminfo.tickerid, "W", high[1], lookahead=barmerge.lookahead_off)
+low_ = request.security(syminfo.tickerid, "W", low[1], lookahead=barmerge.lookahead_off)
+
+// ================= CHART TF (15m): EMA + M/W + BCR =================
+e50 = ta.ema(close, 50)
+e200 = ta.ema(close, 200)
+vsma10 = ta.sma(volume, 10)
+lowSw = ta.lowest(low, swLB)
+highSw = ta.highest(high, swLB)
+piv = 4
+locHigh = high >= ta.highest(high, piv)[1]
+locLow  = low  <= ta.lowest(low, piv)[1]
+ih = f_isInvHammer(open, high, low, close)
+ha = f_isHammer(open, high, low, close)
+
+// ---- M/W State (v13) ----
+var float mp1 = na
+var int   mp1bar = na
+var int   mp2bar = na
+var float mtrough = na
+var float mwl = na
+var float mp2peak = na
+var float wp1 = na
+var int   wp1bar = na
+var int   wp2bar = na
+var float wpeak = na
+var float wwl = na
+var float wp2tr = na
+mwMin = 4
+mwMax = 60
+fib = 0.618
+emaTol = 0.0005
+mSig = false
+wSig = false
+float mP1lvl = na
+float wP1lvl = na
+mwlim = math.max(open,close) + 0.5*(high - math.max(open,close))
+wwlim = math.min(open,close) - 0.5*(math.min(open,close) - low)
+
+// M-Erkennung
+if na(mp1)
+    if ih and locHigh and close > e50
+        mp1 := high
+        mp1bar := bar_index
+        mp2bar := na
+        mtrough := low
+        mwl := mwlim
+else
+    if high > mp1
+        if ih and locHigh and close > e50
+            mp1 := high
+            mp1bar := bar_index
+            mp2bar := na
+            mtrough := low
+            mwl := mwlim
+        else
+            mp1 := na
+            mp2bar := na
+    else if (bar_index - mp1bar) > mwMax
+        mp1 := na
+        mp2bar := na
+    else
+        mtrough := math.min(mtrough, low)
+        if na(mp2bar)
+            if (bar_index - mp1bar) >= mwMin and low <= e50*(1+emaTol)
+                mp2bar := bar_index
+                mp2peak := close
+        else
+            fiblvl = mtrough + fib*(mp1 - mtrough)
+            if (bar_index - mp2bar) >= mwMin and ih and locHigh and close > e50 and high <= mp1 and high >= fiblvl and high <= mwl and high >= mp2peak and close < mp1
+                mSig := true
+                mP1lvl := mp1
+                mp1 := na
+                mp2bar := na
+            mp2peak := math.max(mp2peak, close)
+
+// W-Erkennung
+if na(wp1)
+    if ha and locLow and close < e50
+        wp1 := low
+        wp1bar := bar_index
+        wp2bar := na
+        wpeak := high
+        wwl := wwlim
+else
+    if low < wp1
+        if ha and locLow and close < e50
+            wp1 := low
+            wp1bar := bar_index
+            wp2bar := na
+            wpeak := high
+            wwl := wwlim
+        else
+            wp1 := na
+            wp2bar := na
+    else if (bar_index - wp1bar) > mwMax
+        wp1 := na
+        wp2bar := na
+    else
+        wpeak := math.max(wpeak, high)
+        if na(wp2bar)
+            if (bar_index - wp1bar) >= mwMin and high >= e50*(1-emaTol)
+                wp2bar := bar_index
+                wp2tr := close
+        else
+            fibW = wpeak - fib*(wpeak - wp1)
+            if (bar_index - wp2bar) >= mwMin and ha and locLow and close < e50 and low >= wp1 and low <= fibW and low >= wwl and low <= wp2tr and close > wp1
+                wSig := true
+                wP1lvl := wp1
+                wp1 := na
+                wp2bar := na
+            wp2tr := math.min(wp2tr, close)
+
+// ---- BCR-flat State ----
+var int   cLbar = na
+var float cLsl = na
+var bool  cLexp = false
+var int   cSbar = na
+var float cSsl = na
+var bool  cSexp = false
+vecB = vsma10 > 0 and volume >= bcrVec*vsma10
+bcrL = false
+bcrS = false
+float bcrLsl = na
+float bcrSsl = na
+// LONG
+if vecB and close > e50 and (open <= e50 or close[1] <= e50[1])
+    cLbar := bar_index
+    cLsl := lowSw
+    cLexp := false
+if not na(cLbar)
+    if bar_index - cLbar > bcrWin
+        cLbar := na
+    else if close < cLsl
+        cLbar := na
+    else
+        if not cLexp
+            cLexp := not bcr200On or high >= e200*(1 - bcr200Tol)
+        else
+            if low <= e50*(1+bcrTol) and close > e50 and low > cLsl and f_isHammer(open,high,low,close)
+                bcrL := true
+                bcrLsl := cLsl
+                cLbar := na
+// SHORT
+if vecB and close < e50 and (open >= e50 or close[1] >= e50[1])
+    cSbar := bar_index
+    cSsl := highSw
+    cSexp := false
+if not na(cSbar)
+    if bar_index - cSbar > bcrWin
+        cSbar := na
+    else if close > cSsl
+        cSbar := na
+    else
+        if not cSexp
+            cSexp := not bcr200On or low <= e200*(1 + bcr200Tol)
+        else
+            if high >= e50*(1-bcrTol) and close < e50 and high < cSsl and f_isInvHammer(open,high,low,close)
+                bcrS := true
+                bcrSsl := cSsl
+                cSbar := na
+
+// ================= SIGNALE + GATE =================
+// Long-Signale (d=+1): W oder BCR-Long ; Short (d=-1): M oder BCR-Short
+// v21: BCR nur with-trend (d == 4h-Bias) — als Reversal-Trigger gesperrt
+bcrLok = useBCR and bcrL and strategy.position_size == 0 and (not bcrWtOnly or d4h == 1)
+bcrSok = useBCR and bcrS and strategy.position_size == 0 and (not bcrWtOnly or d4h == -1)
+longSig  = (useMW and wSig) or bcrLok
+shortSig = (useMW and mSig) or bcrSok
+// SL-Referenz
+longSL  = wSig ? wP1lvl : bcrLsl
+shortSL = mSig ? mP1lvl : bcrSsl
+
+f_gate(d) =>
+    ok = true
+    bias = d4h
+    if bias == 0
+        ok := false
+    else if er4h < erMin
+        ok := false
+    else if d == bias
+        if (d == 1 ? l1h : l1h) >= 3
+            ok := false
+        if useMacro and d1d != 0 and d1d != d
+            ok := false
+    else
+        if l4h < 3
+            ok := false
+        else
+            px = close
+            near = d == 1 ? ((not na(low_) and px <= low_*(1+rbTol)) or (not na(lod) and px <= lod*(1+rbTol))) : ((not na(how) and px >= how*(1-rbTol)) or (not na(hod) and px >= hod*(1-rbTol)))
+            if not near
+                ok := false
+    ok
+
+goLong  = longSig  and f_gate(1)
+goShort = shortSig and f_gate(-1)
+
+// ================= SAR RUNNER + SIZING =================
+var float trailStop = na
+var float entryRisk = na
+f_qty(entry, sl) =>
+    dist = math.abs(entry - sl)
+    dist <= 0 ? 0.0 : math.min(strategy.equity*riskP/100/dist, maxLev*strategy.equity/entry)
+
+// Flip / Entry
+if goLong
+    q = f_qty(close, longSL)
+    if q > 0
+        strategy.entry("L", strategy.long, qty=q)
+        trailStop := longSL
+        entryRisk := math.abs(close - longSL)
+if goShort
+    q = f_qty(close, shortSL)
+    if q > 0
+        strategy.entry("S", strategy.short, qty=q)
+        trailStop := shortSL
+        entryRisk := math.abs(close - shortSL)
+
+// SAR-Trail: gleichgerichtetes Signal zieht Stop nach (Label-Kerze)
+if strategy.position_size > 0
+    if wSig and not na(wP1lvl) and wP1lvl > trailStop and wP1lvl < close
+        trailStop := wP1lvl
+    strategy.exit("Lx", "L", stop=trailStop)
+if strategy.position_size < 0
+    if mSig and not na(mP1lvl) and mP1lvl < trailStop and mP1lvl > close
+        trailStop := mP1lvl
+    strategy.exit("Sx", "S", stop=trailStop)
+
+// ---- v22 Time-Stop: nach tsD Tagen unter tsR R -> raus ----
+if tsD > 0 and strategy.position_size != 0 and strategy.opentrades > 0 and not na(entryRisk) and entryRisk > 0
+    eT = strategy.opentrades.entry_time(strategy.opentrades - 1)
+    eP = strategy.opentrades.entry_price(strategy.opentrades - 1)
+    dirn = strategy.position_size > 0 ? 1 : -1
+    urr = (close - eP) * dirn / entryRisk
+    if (time - eT) >= tsD * 86400000 and urr < tsR
+        strategy.close_all(comment="TimeStop")
+
+// ================= PLOTS =================
+// ---- Marker wie v19 ----
+// Roh-Signale (M/W-Formation + BCR), unabhaengig vom Gate
+plotshape(wSig, "W", shape.labelup,   location.belowbar, color.new(color.green,10), text="W", textcolor=color.white, size=size.small)
+plotshape(mSig, "M", shape.labeldown, location.abovebar, color.new(color.red,10),   text="M", textcolor=color.white, size=size.small)
+plotshape(useBCR and bcrL, "BCR L", shape.triangleup,   location.belowbar, color.new(color.aqua,0),    text="B", textcolor=color.white, size=size.tiny)
+plotshape(useBCR and bcrS, "BCR S", shape.triangledown, location.abovebar, color.new(color.fuchsia,0), text="B", textcolor=color.white, size=size.tiny)
+// Tatsaechlich genommene Entries (nach Gate)
+// Entry mit Grund beschriften: REV (Reversal/Counter-Trend) vs WT (With-Trend) + 4h-Level
+if goLong
+    isRev = d4h != 1
+    label.new(bar_index, low, "L " + (isRev ? "REV L" + str.tostring(l4h) : "WT"), yloc=yloc.belowbar, style=label.style_label_up, color=isRev ? color.new(color.orange,0) : color.new(color.lime,0), textcolor=color.white, size=size.small)
+if goShort
+    isRev = d4h != -1
+    label.new(bar_index, high, "S " + (isRev ? "REV L" + str.tostring(l4h) : "WT"), yloc=yloc.abovebar, style=label.style_label_down, color=isRev ? color.new(color.orange,0) : color.new(color.red,0), textcolor=color.white, size=size.small)
+// SL-Linie (SAR-Trail), nur in Position
+plot(strategy.position_size != 0 ? trailStop : na, "SL", color=color.red, style=plot.style_linebr, linewidth=2)
+plot(e50, "50 EMA", color=color.orange)
+plot(e200, "200 EMA", color=color.blue)
+// Hintergrund = Position (wie v19): gruen long / rot short
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : strategy.position_size < 0 ? color.new(color.red, 90) : na)
+// 4h-Trend als senkrechte Linie am Trendwechsel: gruen = up, rot = down
+showBiasLines = input.bool(true, "4h-Trend als senkrechte Linien", group=grpF)
+if showBiasLines and barstate.isconfirmed and d4h != d4h[1] and d4h != 0
+    line.new(bar_index, high, bar_index, low, xloc=xloc.bar_index, extend=extend.both, color=d4h == 1 ? color.new(color.green, 40) : color.new(color.red, 40), width=1, style=line.style_dashed)
