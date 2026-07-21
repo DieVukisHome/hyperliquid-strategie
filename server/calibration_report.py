@@ -133,6 +133,23 @@ def main():
         L.append(f"\nScore-Terzile — alle Signale (r168-Proxy, N={len(rows)}):\n\n")
         L.append(fmt_terc(tercile_stats(rows)))
         # Vetos counterfactual
+        # Gate-Override-Kandidaten: findet der Bewerter in GEBLOCKTEN Signalen Qualität?
+        # (Wookies Frage 21.7.: "bei er_low kann der Bewerter nichts dagegen sagen" —
+        #  doch: hier. Hoher Score + positiver r168 im obersten Terzil über >=50 Events
+        #  = datengestützter Vorschlag, das Gate zu ändern. Bis dahin: nur messen.)
+        L.append("\nGate-Override-Check — geblockte Signale, Score-Terzile vs r168:\n")
+        for (gate,) in con.execute(
+                "SELECT DISTINCT gate FROM signals WHERE gate NOT LIKE 'pass%' "
+                "AND gate != 'samedir_trail'"):
+            rows = con.execute(
+                "SELECT v.score, o.r168 FROM verdicts v JOIN signals s ON s.id=v.signal_id "
+                "JOIN outcomes o ON o.signal_id=s.id WHERE v.evaluator=? AND s.gate=? "
+                "AND o.r168 IS NOT NULL", (ev, gate)).fetchall()
+            if len(rows) < 6:
+                L.append(f"\n  [{gate}] N={len(rows)} — zu wenig Daten\n")
+                continue
+            L.append(f"\n  [{gate}] N={len(rows)}:\n\n")
+            L.append(fmt_terc(tercile_stats(rows)))
         rows = con.execute(
             "SELECT o.r168, o.engine_r FROM verdicts v JOIN outcomes o ON o.signal_id=v.signal_id "
             "WHERE v.evaluator=? AND v.veto=1", (ev,)).fetchall()
