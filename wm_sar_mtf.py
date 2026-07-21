@@ -61,6 +61,8 @@ RB_LB       = int(os.environ.get('RB_LB','16'))         # reclaim: Level muss in
 REV_VOL     = float(os.environ.get('REV_VOL','0'))      # SVC-Proxy: Reversal-Signalkerze braucht Vol >= X*SMA10 (0=aus)
 BCR_WT_ONLY = os.environ.get('BCR_WT_ONLY','0')=='1'    # BCR = Continuation-Pattern -> nur with-trend, nie als Reversal (TBD)
 BE_R        = float(os.environ.get('BE_R','0'))         # SL->Entry sobald +X R erreicht (0=aus)
+TS_D        = float(os.environ.get('TS_D','0'))         # Time-Stop: nach X Tagen unter TS_R -> raus (0=aus)
+TS_R        = float(os.environ.get('TS_R','1.0'))       # R-Schwelle fuer den Time-Stop
 EXIT_RAW    = os.environ.get('EXIT_RAW','off')          # off|mw|all — Gegensignal schliesst Position auch wenn Entry-Gate es blockt
 TP1R_ENV    = float(os.environ.get('TP1_R','0'))        # >0: TP1 bei X R (Anteil TP1_FRAC), sonst reiner Runner
 TP1F_ENV    = float(os.environ.get('TP1_FRAC','0'))
@@ -84,6 +86,7 @@ BCR_TOL     = float(os.environ.get('BCR_TOL','0.0015'))
 BCR_NECK    = os.environ.get('BCR_NECK','1')=='1'
 BCR_200     = os.environ.get('BCR_200','0')=='1'
 BCR_200TOL  = float(os.environ.get('BCR_200TOL','0.01'))
+BCR_200MODE = os.environ.get('BCR_200MODE','bar')   # bar = aktuelle Kerze | since = Touch irgendwann seit Break | sinceswap = Seiten vertauscht (Server-Bug-Check)
 BCR_HAM     = os.environ.get('BCR_HAM','1')=='1'
 BCR_FALLBACK= os.environ.get('BCR_FALLBACK','1')=='1'
 BCR_FLAT    = os.environ.get('BCR_FLAT','0')=='1'
@@ -322,6 +325,10 @@ def run(bars, log_window=None):
                          (L.dir == -1 and b.l <= L.entry - BE_R*L.risk_pu)
                 if be_hit:
                     L.sl = max(L.sl, L.entry) if L.dir == 1 else min(L.sl, L.entry)
+            if TS_D > 0 and (b.t - L.entry_t) >= TS_D*86400 and L.risk_pu > 0:
+                _ur = (b.c - L.entry) * L.dir / L.risk_pu
+                if _ur < TS_R:
+                    close_lot(L, b.c, b.t, "TimeStop"); lots.remove(L); continue
         if not lots:
             prevM_high = prevW_low = None
 
@@ -397,7 +404,13 @@ def run(bars, log_window=None):
                 elif b.c < cL['sl']: cL=None
                 else:
                     if not cL['exp']:
-                        if (not BCR_200) or (e2 is not None and b.h>=e2*(1-BCR_200TOL)): cL['exp']=True
+                        if not BCR_200: cL['exp']=True
+                        elif e2 is not None:
+                            if BCR_200MODE=='since':
+                                if max(highs[cL['bar']:i+1])>=e2*(1-BCR_200TOL): cL['exp']=True
+                            elif BCR_200MODE=='sinceswap':
+                                if min(lows[cL['bar']:i+1])<=e2*(1+BCR_200TOL): cL['exp']=True
+                            elif b.h>=e2*(1-BCR_200TOL): cL['exp']=True
                     else:
                         ham=(not BCR_HAM) or is_hammer(b)
                         if b.l<=e*(1+BCR_TOL) and b.c>e and b.l>cL['sl'] and ham:
@@ -410,7 +423,13 @@ def run(bars, log_window=None):
                 elif b.c > cS['sl']: cS=None
                 else:
                     if not cS['exp']:
-                        if (not BCR_200) or (e2 is not None and b.l<=e2*(1+BCR_200TOL)): cS['exp']=True
+                        if not BCR_200: cS['exp']=True
+                        elif e2 is not None:
+                            if BCR_200MODE=='since':
+                                if min(lows[cS['bar']:i+1])<=e2*(1+BCR_200TOL): cS['exp']=True
+                            elif BCR_200MODE=='sinceswap':
+                                if max(highs[cS['bar']:i+1])>=e2*(1-BCR_200TOL): cS['exp']=True
+                            elif b.l<=e2*(1+BCR_200TOL): cS['exp']=True
                     else:
                         ham=(not BCR_HAM) or is_inv_hammer(b)
                         if b.h>=e*(1-BCR_TOL) and b.c<e and b.h<cS['sl'] and ham:
