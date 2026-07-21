@@ -33,13 +33,18 @@ EVAL_ON   = os.environ.get('EVAL_ON', '1') == '1'
 CATCHUP   = int(os.environ.get('CATCHUP_BARS', '8'))   # wie viele letzte Bars auf neue Events pruefen
 BAR_SEC   = 900
 
-# v21-Champion-Config — setdefault, damit env-Overrides (plist) greifen
+# v22-Champion-Config — setdefault, damit env-Overrides (plist) greifen.
+# v22 (21.7.26): + BCR_200MODE=since (Break muss zur 200EMA laufen vor Retest, korrekt-seitig)
+#                + TS_D=5/TS_R=1.0 (Time-Stop: nach 5 Tagen unter +1R raus)
+# Validiert BTC 4J: +460%/PF3.75/DD18%/OOS+63%; ETH +36%/PF2.20; VIRTUAL +22%/PF2.09.
 CHAMP = {'MW_ON':'1','BCR_ON':'1','BCR_FLAT':'1','CTE_ON':'0','E200_ON':'0','SLOPE_ON':'0',
          'HTF_ON':'0','REGIME_ON':'0','NOPYR':'1','RO_ON':'0','TDIR_ON':'0','MTF_ON':'1',
          'BIAS_MODE':'h4','MTF_MACRO':'1','MTF_RBTOL':'0.005',
          'REV_1D':'0.066','REV_4H':'0.033','REV_1H':'0.0165',
          'ER_N':'30','ER_MIN':'0.20','VEC_MULT':'99','LV_VEC_MULT':'1.5',
-         'RISK':'0.01','MAX_LEV':'10','VT_ON':'0','CC_BIAS':'0','BCR_WT_ONLY':'1'}
+         'RISK':'0.01','MAX_LEV':'10','VT_ON':'0','CC_BIAS':'0','BCR_WT_ONLY':'1',
+         'BCR_200':'1','BCR_200TOL':'0.002','BCR_200MODE':'since',
+         'TS_D':'5','TS_R':'1.0'}
 for k, v in CHAMP.items():
     os.environ.setdefault(k, v)
 

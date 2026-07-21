@@ -19,7 +19,9 @@ immer das Perp-Symbol nutzen.
 
 ```
 MTF_ON=1  BCR_ON=1  BCR_FLAT=1  BIAS_MODE=h4  NOPYR=1 (Einzelposition)
-BCR_WT_ONLY=1                                 # NEU (14.7.26): BCR nur with-trend, nie als Reversal
+BCR_WT_ONLY=1                                 # v21 (14.7.26): BCR nur with-trend, nie als Reversal
+BCR_200=1  BCR_200TOL=0.002  BCR_200MODE=since # v22 (21.7.26): Break muss zur 200EMA laufen vor Retest (Wookie-Regel)
+TS_D=5  TS_R=1.0                               # v22: Time-Stop — nach 5 Tagen unter +1R raus (Plateau 4-7d, cross-coin+)
 REV_1D=0.066  REV_4H=0.033  REV_1H=0.0165     # ZigZag rev% pro TF (Marktstruktur/BoS)
 ER_N=30  ER_MIN=0.20                          # Efficiency-Ratio-Clarity-Filter auf 4h
 VEC_MULT=99 (M/W-Vektor-P1/P3 AUS)  LV_VEC_MULT=1.5 (Level-Vektor)
@@ -31,6 +33,14 @@ Gate-Logik: Bias = 4h-BoS-Trend. **With-Trend** wenn 1h-Level<3 (+1D-Makro-Zusti
 **Reversal** (Counter-Trend) nur an 4h-Level-3 + Roadblock (HOW/LOW/HOD/LOD ±0,5%),
 und NUR per M/W-Formation (BCR_WT_ONLY=1: BCR ist Continuation-Pattern, kein Reversal-Trigger);
 Entry nur wenn 4h-ER ≥ 0,20 (Clarity). Exit = reiner SAR-Runner (kein TP), Flip aufs Gegensignal.
+
+**v22-Befund (21.7.26):** BTC 4J **+460%/PF3.75/DD18%/WR21%/OOS+63%**; ETH 1J +36%/PF2.20; VIRTUAL +22%/PF2.09
+(alle drei ≥ v21). Bausteine: (a) BCR_200MODE=since — Wookies Regel „Break muss erst zur 200EMA laufen,
+sonst Retest ungültig" (blockt Sofort-Signale nach Break; korrekt-seitig: Long max(highs)≥e200, Short min(lows)≤e200!
+Server-Bug 14.-21.7. hatte die Seiten vertauscht); (b) TS_D=5/TS_R=1.0 Time-Stop (Plateau 4-7d, beide TS_R,
+cross-coin überall besser — erste Exit-Änderung die je alle Tests bestand; 2-3d fallen OOS durch, nicht enger stellen).
+GETESTET & NICHT übernommen: BCR_MINRT (min. Bars Break→Retest): BTC stark (OOS+71-73) aber ETH/VIRTUAL schlechter
+→ geparkt bis 4J-Alt-Daten. Param-Ensemble (5 Cfg à 1/5 Risiko): DD 21→16.4%/OOS+74 — Option für Executor-Phase.
 
 **v21-Befund (14.7.26, Trade-Tagging wt/rev):** bcr/rev war das Leck (N31, −24R, PF0.14);
 mw/rev ist der stärkste Block (PF>6). Mit BCR_WT_ONLY=1: **+408% / DD21% / OOS +62% (PF3.44)**

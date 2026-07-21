@@ -87,6 +87,7 @@ BCR_NECK    = os.environ.get('BCR_NECK','1')=='1'
 BCR_200     = os.environ.get('BCR_200','0')=='1'
 BCR_200TOL  = float(os.environ.get('BCR_200TOL','0.01'))
 BCR_200MODE = os.environ.get('BCR_200MODE','bar')   # bar = aktuelle Kerze | since = Touch irgendwann seit Break | sinceswap = Seiten vertauscht (Server-Bug-Check)
+BCR_MINRT   = int(os.environ.get('BCR_MINRT','0'))  # Retest fruehestens N Bars nach dem Break (0=aus; vgl. min_retest_bars der 5m-Engine)
 BCR_HAM     = os.environ.get('BCR_HAM','1')=='1'
 BCR_FALLBACK= os.environ.get('BCR_FALLBACK','1')=='1'
 BCR_FLAT    = os.environ.get('BCR_FLAT','0')=='1'
@@ -413,7 +414,7 @@ def run(bars, log_window=None):
                             elif b.h>=e2*(1-BCR_200TOL): cL['exp']=True
                     else:
                         ham=(not BCR_HAM) or is_hammer(b)
-                        if b.l<=e*(1+BCR_TOL) and b.c>e and b.l>cL['sl'] and ham:
+                        if (i-cL['bar'])>=BCR_MINRT and b.l<=e*(1+BCR_TOL) and b.c>e and b.l>cL['sl'] and ham:
                             bcrL=True; bcrL_sl=cL['sl']; cL=None
             # ---- SHORT: Vektor-Break runter ----
             if vecB and b.c<e and (b.o>=e or bars[i-1].c>=ema[i-1]):
@@ -432,7 +433,7 @@ def run(bars, log_window=None):
                             elif b.l<=e2*(1+BCR_200TOL): cS['exp']=True
                     else:
                         ham=(not BCR_HAM) or is_inv_hammer(b)
-                        if b.h>=e*(1-BCR_TOL) and b.c<e and b.h<cS['sl'] and ham:
+                        if (i-cS['bar'])>=BCR_MINRT and b.h>=e*(1-BCR_TOL) and b.c<e and b.h<cS['sl'] and ham:
                             bcrS=True; bcrS_sl=cS['sl']; cS=None
 
         # 2c) With-Trend Continuation Entry (CTE): Pullback zur 50EMA im Trend
