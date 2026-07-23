@@ -88,6 +88,8 @@ BCR_200     = os.environ.get('BCR_200','0')=='1'
 BCR_200TOL  = float(os.environ.get('BCR_200TOL','0.01'))
 BCR_200MODE = os.environ.get('BCR_200MODE','bar')   # bar = aktuelle Kerze | since = Touch irgendwann seit Break | sinceswap = Seiten vertauscht (Server-Bug-Check)
 BCR_MINRT   = int(os.environ.get('BCR_MINRT','0'))  # Retest fruehestens N Bars nach dem Break (0=aus; vgl. min_retest_bars der 5m-Engine)
+MW1H_SIG    = os.environ.get('MW1H_SIG','0')=='1'   # 1h-M/W als eigene Signalquelle (tag mw1h, fraktal gleiche Detektion)
+BCR_REV_1H  = float(os.environ.get('BCR_REV_1H','0')) # bcr/rev erlaubt, wenn 1h-M/W gleicher Richtung binnen X Stunden bestaetigt (0=aus)
 BCR_HAM     = os.environ.get('BCR_HAM','1')=='1'
 BCR_FALLBACK= os.environ.get('BCR_FALLBACK','1')=='1'
 BCR_FLAT    = os.environ.get('BCR_FLAT','0')=='1'
@@ -175,6 +177,72 @@ def w_wick_limit(b):
     return min(b.o, b.c) - WICK_FRAC * (min(b.o, b.c) - b.l)
 
 
+def detect_mw_htf(hb):
+    """M/W-Detektion (identische v13-Logik, ohne Vektor-Option) auf HTF-Bars.
+    Liefert [(bar_idx, dir, p1_level)] — dir +1 = W (Long), -1 = M (Short)."""
+    n = len(hb)
+    highsH = [b.h for b in hb]; lowsH = [b.l for b in hb]
+    emaH = ema_series([b.c for b in hb], EMA_LEN)
+    out = []
+    mp1 = mp1bar = mp2bar = m_trough = m_wl = m_p2peak = None
+    wp1v = wp1bar = wp2bar = w_peak = w_wl = w_p2trough = None
+    for i in range(n):
+        b = hb[i]; e = emaH[i]
+        if i < PIV:
+            continue
+        ih = is_inv_hammer(b); ha = is_hammer(b)
+        locHigh = b.h >= max(highsH[i-PIV:i]); locLow = b.l <= min(lowsH[i-PIV:i])
+        # M
+        if mp1 is None:
+            if ih and locHigh and b.c > e:
+                mp1, mp1bar, mp2bar, m_trough, m_wl = b.h, i, None, b.l, m_wick_limit(b)
+        else:
+            if b.h > mp1:
+                if ih and locHigh and b.c > e:
+                    mp1, mp1bar, mp2bar, m_trough, m_wl = b.h, i, None, b.l, m_wick_limit(b)
+                else:
+                    mp1 = None; mp2bar = None
+            elif (i - mp1bar) > MW_MAX:
+                mp1 = None; mp2bar = None
+            else:
+                m_trough = min(m_trough, b.l)
+                if mp2bar is None:
+                    if (i - mp1bar) >= MW_MIN and b.l <= e * (1 + EMA_TOL):
+                        mp2bar = i; m_p2peak = b.c
+                else:
+                    fib = m_trough + FIB * (mp1 - m_trough)
+                    if (i - mp2bar) >= MW_MIN and ih and locHigh and b.c > e and b.h <= mp1 \
+                            and b.h >= fib and b.h <= m_wl and b.h >= m_p2peak and b.c < mp1:
+                        out.append((i, -1, mp1)); mp1 = None; mp2bar = None
+                    else:
+                        m_p2peak = max(m_p2peak, b.c)
+        # W
+        if wp1v is None:
+            if ha and locLow and b.c < e:
+                wp1v, wp1bar, wp2bar, w_peak, w_wl = b.l, i, None, b.h, w_wick_limit(b)
+        else:
+            if b.l < wp1v:
+                if ha and locLow and b.c < e:
+                    wp1v, wp1bar, wp2bar, w_peak, w_wl = b.l, i, None, b.h, w_wick_limit(b)
+                else:
+                    wp1v = None; wp2bar = None
+            elif (i - wp1bar) > MW_MAX:
+                wp1v = None; wp2bar = None
+            else:
+                w_peak = max(w_peak, b.h)
+                if wp2bar is None:
+                    if (i - wp1bar) >= MW_MIN and b.h >= e * (1 - EMA_TOL):
+                        wp2bar = i; w_p2trough = b.c
+                else:
+                    fib = w_peak - FIB * (w_peak - wp1v)
+                    if (i - wp2bar) >= MW_MIN and ha and locLow and b.c < e and b.l >= wp1v \
+                            and b.l <= fib and b.l >= w_wl and b.l <= w_p2trough and b.c > wp1v:
+                        out.append((i, 1, wp1v)); wp1v = None; wp2bar = None
+                    else:
+                        w_p2trough = min(w_p2trough, b.c)
+    return out
+
+
 @dataclass
 class Trade:
     dir: int; entry_t: int; entry: float
@@ -239,6 +307,15 @@ def run(bars, log_window=None):
             _cc_d1,_=_CC.dir_level_for_base(_bt,86400)
             _cc_d4,_cc_l4=_CC.dir_level_for_base(_bt,14400)
             _cc_d1h,_cc_l1h=_CC.dir_level_for_base(_bt,3600)
+
+    # --- 1h-M/W-Signale (fraktale Detektion auf 1h-Resample, kausal ab Bucket-Close) ---
+    _mw1h = []; _mw1h_ptr = 0; _last1hM = -1e18; _last1hW = -1e18
+    if MW1H_SIG or BCR_REV_1H > 0:
+        import levels_mtf as _LV1
+        hb1, ct1 = _LV1.resample(bars, 3600)
+        for (j, dh, p1) in detect_mw_htf(hb1):
+            _mw1h.append((ct1[j], dh, p1))   # nutzbar ab Close des 1h-Buckets
+        _mw1h.sort()
 
     # --- Vol-Targeting: Vola = SMA der relativen Bar-Range ---
     _vt = None; _vtmed = 0.0; _vt_now = 1.0
@@ -309,6 +386,12 @@ def run(bars, log_window=None):
     for i in range(n):
         b = bars[i]
         e = ema[i]
+        _new1h = []
+        while _mw1h_ptr < len(_mw1h) and _mw1h[_mw1h_ptr][0] <= b.t:
+            _ct, _dh, _p1 = _mw1h[_mw1h_ptr]; _mw1h_ptr += 1
+            if _dh == 1: _last1hW = _ct
+            else:        _last1hM = _ct
+            _new1h.append((_dh, _p1))
         if VT_ON and _vt is not None and _vt[i] > 0:
             _vt_now = max(VT_LO, min(VT_HI, _vtmed / _vt[i]))
 
@@ -451,6 +534,9 @@ def run(bars, log_window=None):
         if b.t >= win_start:
             sigs=[]
             if MW_ON: sigs += [(1, wev, wp1, 'mw'), (-1, mev, mp1sig, 'mw')]
+            if MW1H_SIG:
+                for _dh, _p1 in _new1h:
+                    sigs.append((_dh, True, _p1, 'mw1h'))
             if BCR_ON:
                 _flatok = (not BCR_FLAT) or (len(lots)==0)
                 if bcrL and bcrL_sl is not None and _flatok: sigs.append((1, True, bcrL_sl, 'bcr'))
@@ -493,7 +579,13 @@ def run(bars, log_window=None):
                         _sig_rec(_ev, 'er_low'); continue # Levels am Bias-TF nicht klar genug -> aussetzen
                     _ttag = tag + ('/wt' if d == _bias else '/rev')
                     if BCR_WT_ONLY and tag == 'bcr' and d != _bias:
-                        _sig_rec(_ev, 'bcr_wt_only'); continue  # BCR ist Continuation, kein Reversal-Trigger
+                        # Ausnahme (Wookie 23.7.): bcr/rev erlaubt, wenn 1h-M/W gleicher
+                        # Richtung binnen BCR_REV_1H Stunden die Trap-Struktur liefert
+                        _1h_ok = BCR_REV_1H > 0 and (
+                            (d == -1 and b.t - _last1hM <= BCR_REV_1H*3600) or
+                            (d == 1 and b.t - _last1hW <= BCR_REV_1H*3600))
+                        if not _1h_ok:
+                            _sig_rec(_ev, 'bcr_wt_only'); continue  # BCR ist Continuation, kein Reversal-Trigger
                     if d == _bias:
                         # WITH-TREND: nur in fruehem/mittlerem 1h-Level (L1->L2), nicht in L3-Erschoepfung
                         if _l1 >= 3:
