@@ -16,7 +16,13 @@ Kalibrierung (unterstes Score-Terzil über ≥50 Setups messbar schlechter).
 - `RUBRIK.md` — Bewertungs-Rubrik (Asymmetrie, Veto-Mathematik, orthogonale Quellen,
   Verdict-Schema). Das ist der "Prompt-Vertrag" — Änderungen hier ändern den Bewerter.
 - `calibration_report.py` — wöchentlicher Report: Score-Terzile vs realisierte R,
-  Veto-Counterfactuals, claude/hermes-Disagreement, Briefing-Backcheck.
+  Veto-Counterfactuals, claude/hermes-Disagreement, Briefing-Backcheck, Gate-Override-Check.
+- `daily_context.py` — deterministischer Tages-Kontext (Engine-Read + Funding/OI/F&G,
+  fail-soft). Grundlage der Tagesanalyse: Script beschafft, LLM interpretiert nur.
+- `ANALYSE_PROMPT.md` — festes Schema der täglichen BTC-Analyse (Pflicht-JSON-Bias-Zeile),
+  Ablage in `server/analysen/` (pushbar, nicht ignoriert).
+- `journal_export.py` — Journal als CSV nach `server/export/` (pushbar; journal.db/queue
+  selbst bleiben via .gitignore lokal — direkt `git add server/journal.db` staged NICHTS).
 
 ## Setup auf dem Server (MacBook)
 
