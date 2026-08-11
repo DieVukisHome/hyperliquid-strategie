@@ -1,0 +1,764 @@
+{
+  "calls": [
+    {
+      "timestamp": "2026-07-02_13h",
+      "price_at": 61336.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 61718.68,
+      "return_24h_pct": 0.62,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-03_08h",
+      "price_at": 61700.49,
+      "bias": "unknown",
+      "setup_summary": "backfill",
+      "price_24h_later": 62700.0,
+      "return_24h_pct": 1.62,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-03_09h",
+      "price_at": 61730.01,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 62471.52,
+      "return_24h_pct": 1.2,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-06_08h",
+      "price_at": 63114.0,
+      "bias": "unknown",
+      "setup_summary": "backfill",
+      "price_24h_later": 63100.01,
+      "return_24h_pct": -0.02,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-07_08h",
+      "price_at": 63126.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 62800.0,
+      "return_24h_pct": -0.52,
+      "bias_hit_24h": true,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-08_08h",
+      "price_at": 62638.0,
+      "bias": "unknown",
+      "setup_summary": "backfill",
+      "price_24h_later": 62453.74,
+      "return_24h_pct": -0.29,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-09_08h",
+      "price_at": 62590.0,
+      "bias": "unknown",
+      "setup_summary": "backfill",
+      "price_24h_later": 64047.88,
+      "return_24h_pct": 2.33,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-10_08h",
+      "price_at": 64119.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 64152.0,
+      "return_24h_pct": 0.05,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-13_08h",
+      "price_at": 62802.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 62745.23,
+      "return_24h_pct": -0.09,
+      "bias_hit_24h": true,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-14_08h",
+      "price_at": 62737.0,
+      "bias": "unknown",
+      "setup_summary": "backfill",
+      "price_24h_later": 64746.01,
+      "return_24h_pct": 3.2,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-15_08h",
+      "price_at": 64946.0,
+      "bias": "unknown",
+      "setup_summary": "backfill",
+      "price_24h_later": 64650.05,
+      "return_24h_pct": -0.46,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-16_07h",
+      "price_at": 64894.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 63570.0,
+      "return_24h_pct": -2.04,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-16_08h",
+      "price_at": 64918.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 63486.01,
+      "return_24h_pct": -2.21,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-16_18h",
+      "price_at": 64570.0,
+      "bias": "unknown",
+      "setup_summary": "backfill",
+      "price_24h_later": 63174.0,
+      "return_24h_pct": -2.16,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-17_08h",
+      "price_at": 62840.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 63967.99,
+      "return_24h_pct": 1.8,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-18_08h",
+      "price_at": 63968.0,
+      "bias": "unknown",
+      "setup_summary": "backfill",
+      "price_24h_later": 64720.17,
+      "return_24h_pct": 1.18,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-19_08h",
+      "price_at": 64724.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 64540.01,
+      "return_24h_pct": -0.28,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-19_15h",
+      "price_at": 64422.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 65002.01,
+      "return_24h_pct": 0.9,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-19_23h",
+      "price_at": 64366.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 65142.0,
+      "return_24h_pct": 1.21,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-20_08h",
+      "price_at": 64136.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 65522.01,
+      "return_24h_pct": 2.16,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-20_16h",
+      "price_at": 64332.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 66558.82,
+      "return_24h_pct": 3.46,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-21_00h",
+      "price_at": 65222.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 66406.57,
+      "return_24h_pct": 1.82,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-21_08h",
+      "price_at": 65752.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 66381.05,
+      "return_24h_pct": 0.96,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-22_03h",
+      "price_at": 66372.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 66114.49,
+      "return_24h_pct": -0.39,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-22_08h",
+      "price_at": 65975.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 65616.48,
+      "return_24h_pct": -0.54,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-23_00h",
+      "price_at": 66016.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 65147.5,
+      "return_24h_pct": -1.32,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-23_07h",
+      "price_at": 65757.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 65456.7,
+      "return_24h_pct": -0.46,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-23_08h",
+      "price_at": 65666.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 65318.0,
+      "return_24h_pct": -0.53,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-23_16h",
+      "price_at": 65068.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 64780.01,
+      "return_24h_pct": -0.44,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-24_08h",
+      "price_at": 65325.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 64181.46,
+      "return_24h_pct": -1.75,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-24_14h",
+      "price_at": 65026.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 64070.0,
+      "return_24h_pct": -1.47,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-25_08h",
+      "price_at": 64024.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 64530.06,
+      "return_24h_pct": 0.79,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-26_08h",
+      "price_at": 64418.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 65282.8,
+      "return_24h_pct": 1.34,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-27_08h",
+      "price_at": 65468.0,
+      "bias": "neutral",
+      "setup_summary": "backfill",
+      "price_24h_later": 63350.95,
+      "return_24h_pct": -3.23,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-28_08h",
+      "price_at": 63452.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 63968.34,
+      "return_24h_pct": 0.81,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-29_02h",
+      "price_at": 64130.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 63942.5,
+      "return_24h_pct": -0.29,
+      "bias_hit_24h": true,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-29_07h",
+      "price_at": 63980.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 64161.98,
+      "return_24h_pct": 0.28,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-29_08h",
+      "price_at": 64067.0,
+      "bias": "unknown",
+      "setup_summary": "backfill",
+      "price_24h_later": 64023.99,
+      "return_24h_pct": -0.07,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-29_17h",
+      "price_at": 64124.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 65022.01,
+      "return_24h_pct": 1.4,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-30_00h",
+      "price_at": 64025.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 64777.37,
+      "return_24h_pct": 1.18,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-30_08h",
+      "price_at": 64034.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 64300.0,
+      "return_24h_pct": 0.42,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-31_01h",
+      "price_at": 64826.0,
+      "bias": "unknown",
+      "setup_summary": "backfill",
+      "price_24h_later": 62947.78,
+      "return_24h_pct": -2.9,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-07-31_08h",
+      "price_at": 64358.0,
+      "bias": "unknown",
+      "setup_summary": "backfill",
+      "price_24h_later": 63115.01,
+      "return_24h_pct": -1.93,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-08-01_04h",
+      "price_at": 63075.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 62833.99,
+      "return_24h_pct": -0.38,
+      "bias_hit_24h": true,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-08-01_08h",
+      "price_at": 63030.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 63590.0,
+      "return_24h_pct": 0.89,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-08-02_08h",
+      "price_at": 63453.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 62790.0,
+      "return_24h_pct": -1.04,
+      "bias_hit_24h": true,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-08-02_14h",
+      "price_at": 63182.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 62742.01,
+      "return_24h_pct": -0.7,
+      "bias_hit_24h": true,
+      "outcome_evaluated_at": "2026-08-03 17:33"
+    },
+    {
+      "timestamp": "2026-08-03_08h",
+      "price_at": 62830.0,
+      "bias": "bearish",
+      "setup_summary": "backfill",
+      "price_24h_later": 64029.0,
+      "return_24h_pct": 1.91,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-04 11:18"
+    },
+    {
+      "timestamp": "2026-08-03_17h",
+      "price_at": 63816.85,
+      "bias": "unknown",
+      "setup_summary": "unknown",
+      "price_24h_later": 63683.94,
+      "return_24h_pct": -0.21,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-05 08:00"
+    },
+    {
+      "timestamp": "2026-08-03_17h",
+      "price_at": 63790.0,
+      "bias": "neutral",
+      "setup_summary": "Neutral \u2014 RANGE-BREAKOUT-WATCH (leicht Long-skewed wegen bullischem 1H-Stack)",
+      "price_24h_later": 63683.94,
+      "return_24h_pct": -0.17,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-05 08:00"
+    },
+    {
+      "timestamp": "2026-08-04_00h",
+      "price_at": 63535.99,
+      "bias": "neutral",
+      "setup_summary": "Long-Watch",
+      "price_24h_later": 64341.0,
+      "return_24h_pct": 1.27,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-05 08:00"
+    },
+    {
+      "timestamp": "2026-08-04_11h",
+      "price_at": 63530.01,
+      "bias": "unknown",
+      "setup_summary": "unknown",
+      "price_24h_later": 64163.99,
+      "return_24h_pct": 1.0,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-05 14:00"
+    },
+    {
+      "timestamp": "2026-08-04_11h",
+      "price_at": 63590.0,
+      "bias": "neutral",
+      "setup_summary": "Short",
+      "price_24h_later": 64163.99,
+      "return_24h_pct": 0.9,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-05 14:00"
+    },
+    {
+      "timestamp": "2026-08-04_14h",
+      "price_at": 63902.0,
+      "bias": "neutral",
+      "setup_summary": "Short-Watch",
+      "price_24h_later": 64062.23,
+      "return_24h_pct": 0.25,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-05 14:00"
+    },
+    {
+      "timestamp": "2026-08-05_08h",
+      "price_at": 64330.86,
+      "bias": "long",
+      "setup_summary": "Long-Watch",
+      "price_24h_later": 64734.65,
+      "return_24h_pct": 0.63,
+      "bias_hit_24h": true,
+      "outcome_evaluated_at": "2026-08-06 08:00"
+    },
+    {
+      "timestamp": "2026-08-05_14h",
+      "price_at": 64075.28,
+      "bias": "neutral",
+      "setup_summary": "Long-Watch",
+      "price_24h_later": 64615.95,
+      "return_24h_pct": 0.84,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-06 14:00"
+    },
+    {
+      "timestamp": "2026-08-06_02h",
+      "price_at": 64676.56,
+      "bias": "neutral",
+      "setup_summary": "unknown",
+      "price_24h_later": 64351.49,
+      "return_24h_pct": -0.5,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-07 08:00"
+    },
+    {
+      "timestamp": "2026-08-06_08h",
+      "price_at": 64892.01,
+      "bias": "long",
+      "setup_summary": "Long-Watch",
+      "price_24h_later": 64255.13,
+      "return_24h_pct": -0.98,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-07 08:00"
+    },
+    {
+      "timestamp": "2026-08-06_14h",
+      "price_at": 64617.29,
+      "bias": "neutral",
+      "setup_summary": "unknown",
+      "price_24h_later": 64893.98,
+      "return_24h_pct": 0.43,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-07 14:00"
+    },
+    {
+      "timestamp": "2026-08-06_21h",
+      "price_at": 64420.0,
+      "bias": "neutral",
+      "setup_summary": "Short-Watch",
+      "price_24h_later": 64764.33,
+      "return_24h_pct": 0.53,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-08 08:00"
+    },
+    {
+      "timestamp": "2026-08-07_08h",
+      "price_at": 64332.0,
+      "bias": "neutral",
+      "setup_summary": "Long-Watch",
+      "price_24h_later": 65013.58,
+      "return_24h_pct": 1.06,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-08 08:00"
+    },
+    {
+      "timestamp": "2026-08-07_14h",
+      "price_at": 65030.0,
+      "bias": "unknown",
+      "setup_summary": "unknown",
+      "price_24h_later": 65005.87,
+      "return_24h_pct": -0.04,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-08 14:00"
+    },
+    {
+      "timestamp": "2026-08-08_08h",
+      "price_at": 65000.49,
+      "bias": "neutral",
+      "setup_summary": "Long-Watch",
+      "price_24h_later": 64785.0,
+      "return_24h_pct": -0.33,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-09 08:00"
+    },
+    {
+      "timestamp": "2026-08-08_14h",
+      "price_at": 64967.36,
+      "bias": "neutral",
+      "setup_summary": "Long-Watch",
+      "price_24h_later": 64959.86,
+      "return_24h_pct": -0.01,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-09 14:00"
+    },
+    {
+      "timestamp": "2026-08-09_01h",
+      "price_at": 64938.01,
+      "bias": "neutral",
+      "setup_summary": "Neutral-Watch Long",
+      "price_24h_later": 65192.99,
+      "return_24h_pct": 0.39,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-10 08:00"
+    },
+    {
+      "timestamp": "2026-08-09_08h",
+      "price_at": 64801.57,
+      "bias": "long",
+      "setup_summary": "Long-Watch",
+      "price_24h_later": 65006.73,
+      "return_24h_pct": 0.32,
+      "bias_hit_24h": true,
+      "outcome_evaluated_at": "2026-08-10 08:00"
+    },
+    {
+      "timestamp": "2026-08-09_09h",
+      "price_at": 64853.59,
+      "bias": "neutral",
+      "setup_summary": "unknown",
+      "price_24h_later": 65134.0,
+      "return_24h_pct": 0.43,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-10 14:00"
+    },
+    {
+      "timestamp": "2026-08-09_09h",
+      "price_at": 64835.01,
+      "bias": "neutral",
+      "setup_summary": "unknown",
+      "price_24h_later": 65134.0,
+      "return_24h_pct": 0.46,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-10 14:00"
+    },
+    {
+      "timestamp": "2026-08-09_14h",
+      "price_at": 64950.01,
+      "bias": "long",
+      "setup_summary": "Long (prim\u00e4r) | Short (sekund\u00e4r, Range-Break unten)",
+      "price_24h_later": 65013.06,
+      "return_24h_pct": 0.1,
+      "bias_hit_24h": true,
+      "outcome_evaluated_at": "2026-08-10 14:00"
+    },
+    {
+      "timestamp": "2026-08-09_23h",
+      "price_at": 65137.96,
+      "bias": "long",
+      "setup_summary": "Long-Watch",
+      "price_24h_later": 64045.7,
+      "return_24h_pct": -1.68,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-11 08:00"
+    },
+    {
+      "timestamp": "2026-08-10_08h",
+      "price_at": 65153.66,
+      "bias": "long",
+      "setup_summary": "Long (ab Trigger)",
+      "price_24h_later": 64023.51,
+      "return_24h_pct": -1.73,
+      "bias_hit_24h": false,
+      "outcome_evaluated_at": "2026-08-11 08:00"
+    },
+    {
+      "timestamp": "2026-08-10_14h",
+      "price_at": 65114.37,
+      "bias": "neutral",
+      "setup_summary": "Long-Watch",
+      "price_24h_later": 64233.23,
+      "return_24h_pct": -1.35,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": "2026-08-11 14:00"
+    },
+    {
+      "timestamp": "2026-08-11_08h",
+      "price_at": 63998.34,
+      "bias": "neutral",
+      "setup_summary": "Long-Watch",
+      "price_24h_later": null,
+      "return_24h_pct": null,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": null
+    },
+    {
+      "timestamp": "2026-08-11_14h",
+      "price_at": 64407.01,
+      "bias": "neutral",
+      "setup_summary": "Long-Watch",
+      "price_24h_later": null,
+      "return_24h_pct": null,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": null
+    },
+    {
+      "timestamp": "2026-08-11_18h",
+      "price_at": 63624.38,
+      "bias": "neutral",
+      "setup_summary": "Contrarian-Long",
+      "price_24h_later": null,
+      "return_24h_pct": null,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": null
+    },
+    {
+      "timestamp": "2026-08-11_18h",
+      "price_at": 63516.01,
+      "bias": "neutral",
+      "setup_summary": "Contrarian-Long-Watch (half-size)",
+      "price_24h_later": null,
+      "return_24h_pct": null,
+      "bias_hit_24h": null,
+      "outcome_evaluated_at": null
+    }
+  ]
+}
