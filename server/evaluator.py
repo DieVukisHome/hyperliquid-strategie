@@ -42,13 +42,18 @@ def market_block():
         sys.path.insert(0, HERE)
         from daily_context import market_context
         return ("\n## Orthogonale Marktdaten (deterministisch geholt, Jetzt-Stand)\n"
-                "```json\n" + json.dumps(market_context(), indent=1, ensure_ascii=False) + "\n```\n")
+                "```json\n" + json.dumps(market_context(price=_EVENT_PX), indent=1, ensure_ascii=False) + "\n```\n")
     except Exception as e:
         return (f"\n## Orthogonale Marktdaten: NICHT verfügbar ({str(e)[:100]}) — "
                 "bewerte nur mit Event+Briefing, confidence maximal 'low'.\n")
 
 
+_EVENT_PX = None
+
+
 def build_prompt(event):
+    global _EVENT_PX
+    _EVENT_PX = event.get('px')
     rubrik = open(os.path.join(HERE, 'RUBRIK.md'), errors='replace').read()
     return (f"{rubrik}\n\n## Signal-Event (JSON)\n```json\n{json.dumps(event, indent=1)}\n```\n"
             f"{market_block()}{latest_briefing()}\n"

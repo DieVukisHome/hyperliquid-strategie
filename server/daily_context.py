@@ -77,8 +77,52 @@ def engine_context(csv_path):
         position=pos, key_levels=keys, signals_48h=sigs48)
 
 
-def market_context():
+def tbd_snapshot(price):
+    """Kompakt-Summary aus dem TBD-Extension-Snapshot (server/data/tbd_snapshot.json,
+    schreibt die Server-Datenerhebung — Schema siehe TBD_SNAPSHOT.md). Fail-soft.
+    KEIN Rohdaten-Dump: nur Top-Cluster je Seite + Liq-Aggregat + 10h-Serien."""
+    import time
+    p = os.path.join(os.environ.get('SERVER_DIR', HERE), 'data', 'tbd_snapshot.json')
+    if not os.path.exists(p):
+        return None, 'kein Snapshot (server/data/tbd_snapshot.json fehlt)'
+    age_min = (time.time() - os.path.getmtime(p)) / 60
+    try:
+        d = json.load(open(p))
+    except ValueError as e:
+        return None, f'Snapshot unlesbar: {e}'
+    def top_clusters(side_above):
+        cands = []
+        for tf, rows in (d.get('heatmap') or {}).items():
+            for r in rows or []:
+                dist = (r['px'] - price) / price * 100
+                if (dist > 0) == side_above and abs(dist) <= 5:
+                    cands.append(dict(px=r['px'], dist_pct=round(dist, 2),
+                                      size=r.get('size'), tf=tf, side=r.get('side')))
+        cands.sort(key=lambda x: -(x['size'] or 0))
+        return cands[:3]
+    liqs = []
+    for r in (d.get('liq_levels') or []):
+        dist = (r['px'] - price) / price * 100
+        if abs(dist) <= 5:
+            liqs.append(dict(px=r['px'], dist_pct=round(dist, 2),
+                             usd=r.get('usd'), lev=r.get('lev')))
+    liqs.sort(key=lambda x: abs(x['dist_pct']))
+    out = dict(age_min=round(age_min, 1),
+               cluster_oben=top_clusters(True), cluster_unten=top_clusters(False),
+               liq_levels_nah=liqs[:6], liq_48h=d.get('liq_48h'),
+               retail_long_pct=d.get('retail_long_pct'),
+               oi_delta_10h_usd=d.get('oi_delta_10h_usd'),
+               bidask_delta_10h_usd=d.get('bidask_delta_10h_usd'))
+    note = f'Snapshot {age_min:.0f}min alt — als VERALTET behandeln' if age_min > 30 else None
+    return out, note
+
+
+def market_context(price=None):
     out = {}
+    tbd, note = tbd_snapshot(price) if price else (None, 'kein Referenzpreis')
+    out['tbd'] = tbd
+    if note:
+        out['tbd_note'] = note
     try:
         d = _get(f'https://fapi.binance.com/fapi/v1/premiumIndex?symbol={SYMBOL}')
         out['funding_binance'] = dict(rate=float(d['lastFundingRate']),
@@ -150,9 +194,10 @@ def main():
     ap.add_argument('--md', action='store_true')
     ap.add_argument('--no-market', action='store_true', help='nur Engine-Teil (Offline-Test)')
     a = ap.parse_args()
+    eng = engine_context(a.csv)
     ctx = dict(date=dt.date.today().isoformat(),
-               engine=engine_context(a.csv),
-               market={} if a.no_market else market_context())
+               engine=eng,
+               market={} if a.no_market else market_context(price=eng['price']))
     print(json.dumps(ctx, indent=1, ensure_ascii=False))
     if a.md:
         print("\n" + to_markdown(ctx))

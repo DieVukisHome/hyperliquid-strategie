@@ -33,7 +33,13 @@ Fehlt eine Quelle (`_err`), behandle sie als n/a — nicht raten, nicht beschaff
    laufendem Move = Unwind/Erschöpfung statt frischem Trend.
 3. **Fear & Greed:** Extremwerte (<15 / >85) sprechen für Reversal-, gegen
    With-Trend-Setups.
-4. **News/Events heute** (aus dem Briefing; High-Impact: FOMC, CPI, NFP). Signal
+4. **TBD-Heatmap/Liq-Cluster** (`tbd`-Block, falls vorhanden; `age_min`>30 = n/a):
+   Die Engine kennt KEINE Liquidations-Daten — hier bist du am orthogonalsten.
+   (a) Großes Cluster IN Signalrichtung kurz vorm Entry = Magnet/Rückenwind;
+   (b) Liq-Level dicht HINTER dem SL (`sl_ref`) = Stop-Hunt-Risiko, Abzug;
+   (c) dominantes Cluster GEGEN die Signalrichtung vor dem ersten sinnvollen
+   Ziel = wenig Runway, Abzug. Zitiere Cluster mit Preis+Size im reasoning.
+5. **News/Events heute** (aus dem Briefing; High-Impact: FOMC, CPI, NFP). Signal
    < 2h vor High-Impact-News = Qualitätsabzug; die Engine kennt keinen Kalender.
 5. **Das 8:00-Briefing** (falls unten angehängt): stimmt dessen Makro-Read mit der
    Signalrichtung überein?
