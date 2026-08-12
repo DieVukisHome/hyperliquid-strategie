@@ -35,12 +35,26 @@ def latest_briefing():
         return ''
 
 
+def market_block():
+    """Orthogonale Daten DETERMINISTISCH holen (Script fetcht, LLM urteilt nur).
+    Der Bewerter-Prozess hat keine Netz-Tools — deshalb hier injizieren."""
+    try:
+        sys.path.insert(0, HERE)
+        from daily_context import market_context
+        return ("\n## Orthogonale Marktdaten (deterministisch geholt, Jetzt-Stand)\n"
+                "```json\n" + json.dumps(market_context(), indent=1, ensure_ascii=False) + "\n```\n")
+    except Exception as e:
+        return (f"\n## Orthogonale Marktdaten: NICHT verfügbar ({str(e)[:100]}) — "
+                "bewerte nur mit Event+Briefing, confidence maximal 'low'.\n")
+
+
 def build_prompt(event):
     rubrik = open(os.path.join(HERE, 'RUBRIK.md'), errors='replace').read()
     return (f"{rubrik}\n\n## Signal-Event (JSON)\n```json\n{json.dumps(event, indent=1)}\n```\n"
-            f"{latest_briefing()}\n"
-            "Bewerte jetzt dieses Setup gemäß Rubrik. Hole die orthogonalen Daten, "
-            "die dir fehlen. Antworte am ENDE mit GENAU EINEM JSON-Objekt im Verdict-Schema.")
+            f"{market_block()}{latest_briefing()}\n"
+            "Bewerte jetzt dieses Setup gemäß Rubrik. Alle Daten liegen oben vor — "
+            "NICHTS selbst fetchen, fehlende Quellen als n/a behandeln. "
+            "Antworte am ENDE mit GENAU EINEM JSON-Objekt im Verdict-Schema.")
 
 
 def parse_verdict(text):

@@ -21,17 +21,19 @@ Deine Aufgabe: das Setup mit ORTHOGONALEN Daten bewerten, die die Engine nicht s
 `bias4` 4h-Trend, `l1`/`l4` Level-Count 1h/4h, `d1` 1D-Makro, `er` 4h-Efficiency-Ratio,
 `rb_dist` Distanz zum nächsten Key-Level, `px`/`sl_ref` Preis/Stop-Referenz.
 
-## Was du prüfst (orthogonal, selbst holen)
+## Was du prüfst (orthogonale Daten werden dir MITGELIEFERT — nichts selbst fetchen)
 
-1. **Funding-Rate** (Hyperliquid: POST https://api.hyperliquid.xyz/info
-   Body `{"type":"metaAndAssetCtxs"}` → BTC-Kontext; alternativ Binance
-   https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT). Extrem positives
-   Funding + Long-Signal = überfüllte Seite; leicht negativ bei Long = Rückenwind.
-2. **Open Interest** (https://fapi.binance.com/fapi/v1/openInterest?symbol=BTCUSDT,
-   Verlauf via /futures/data/openInterestHist). OI-Spike gegen Signalrichtung beachten.
-3. **Fear & Greed** (https://api.alternative.me/fng/?limit=7). Extremwerte (<15 / >85)
-   sprechen für Reversal-, gegen With-Trend-Setups.
-4. **News/Events heute** (High-Impact: FOMC, CPI, NFP, große Krypto-Events). Signal
+Der Block „Orthogonale Marktdaten" unten enthält Funding (Binance+Hyperliquid),
+Open Interest (+48h-Änderung) und Fear&Greed (7 Tage), deterministisch geholt.
+Fehlt eine Quelle (`_err`), behandle sie als n/a — nicht raten, nicht beschaffen.
+
+1. **Funding:** Extrem positives Funding + Long-Signal = überfüllte Seite;
+   leicht negativ bei Long = Rückenwind. Symmetrisch für Shorts.
+2. **Open Interest:** OI-Spike gegen Signalrichtung beachten; OI-Abbau bei
+   laufendem Move = Unwind/Erschöpfung statt frischem Trend.
+3. **Fear & Greed:** Extremwerte (<15 / >85) sprechen für Reversal-, gegen
+   With-Trend-Setups.
+4. **News/Events heute** (aus dem Briefing; High-Impact: FOMC, CPI, NFP). Signal
    < 2h vor High-Impact-News = Qualitätsabzug; die Engine kennt keinen Kalender.
 5. **Das 8:00-Briefing** (falls unten angehängt): stimmt dessen Makro-Read mit der
    Signalrichtung überein?
