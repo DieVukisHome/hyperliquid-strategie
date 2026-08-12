@@ -4,3 +4,4 @@ backtest/data/
 *.csv
 *.rtf
 .DS_Store
+server/data/tbd_snapshot.json
