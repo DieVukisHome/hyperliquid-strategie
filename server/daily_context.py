@@ -181,6 +181,35 @@ def to_markdown(ctx):
         L.append(f"**OI Binance:** {oi['now']:,.0f} ({oi['chg_48h_pct']:+.1f}% vs 48h)" if oi.get('chg_48h_pct') is not None else f"**OI Binance:** {oi['now']:,.0f}")
     if fg:
         L.append(f"**Fear&Greed:** heute {fg[0]['v']} ({fg[0]['label']}), 7d: " + " ".join(str(x['v']) for x in fg))
+    tbd = m.get('tbd')
+    if tbd:
+        age = tbd.get('age_min')
+        head = f"**TBD-Snapshot** ({age:.0f}min alt):" if age is not None else "**TBD-Snapshot:**"
+        if age is not None and age > 30:
+            head += " ⚠️ VERALTET"
+        L.append(head)
+        def _fmt_clusters(rows):
+            return " · ".join(
+                f"${r['px']:,.0f} ({r['dist_pct']:+.1f}%, {r['tf']}, size={r['size']:,})"
+                for r in rows or []) or "(keine)"
+        L.append(f"  Cluster oben (±5%, Top-3): {_fmt_clusters(tbd.get('cluster_oben'))}")
+        L.append(f"  Cluster unten (±5%, Top-3): {_fmt_clusters(tbd.get('cluster_unten'))}")
+        liqs = tbd.get('liq_levels_nah') or []
+        if liqs:
+            L.append("  Nächste Liq-Levels: " + " · ".join(
+                f"${r['px']:,.0f} ({r['dist_pct']:+.2f}%, ${r['usd']/1e6:.0f}M, {r['lev']})"
+                for r in liqs))
+        l48 = tbd.get('liq_48h')
+        if l48:
+            L.append(f"  Kiy Liq 48h-Aggregat: Long ${l48['long_usd']/1e6:.1f}M · Short ${l48['short_usd']/1e6:.1f}M")
+        rl = tbd.get('retail_long_pct'); oid = tbd.get('oi_delta_10h_usd'); bad = tbd.get('bidask_delta_10h_usd')
+        parts = []
+        if rl is not None: parts.append(f"Retail {rl:.1f}% Long")
+        if oid is not None: parts.append(f"OI-Delta 10h ${oid/1e6:+.1f}M")
+        if bad is not None: parts.append(f"Bid/Ask-Delta 10h ${bad/1e6:+.1f}M")
+        if parts: L.append("  " + " · ".join(parts))
+    elif m.get('tbd_note'):
+        L.append(f"_TBD-Snapshot: {m['tbd_note']}_")
     for k in ('funding_binance_err', 'hyperliquid_err', 'open_interest_err', 'fear_greed_err'):
         if m.get(k):
             L.append(f"_Quelle fehlgeschlagen: {k} → {m[k]}_")
