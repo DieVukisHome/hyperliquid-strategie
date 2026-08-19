@@ -81,6 +81,44 @@ gibt es aber gar kein M/W-Rohsignal. Fuer das beobachtete Label bleiben damit of
 uebereinstimmen. Bleibt eine Abweichung, ist es ein NEUER Fall → unten eintragen.
 Der Strategy-Tester zeigt ab v23 andere (korrektere) Zahlen als v22 — erwartet.
 
+## ROOT CAUSE der ECHTEN Detektor-Divergenz (19.8. — Vektor-Fenster)
+
+Wookies eigentlicher Punkt war nicht das Gate, sondern: **Pine erkennt andere
+ROH-Signale als die Engine.** Konkret gemeldet:
+- Python: Roh-BCR-Long **18.08 22:00 @64.624,9** (wurde getradet, offen +5,97R) — auf TV **kein** Marker.
+- TV: BCR-Long **19.08 14:00** (dort Pines offener Trade) — im Python-Journal **kein** Signal.
+
+**Ursache: unterschiedliches Volumen-Mittelungsfenster für die Vektorkerze.**
+
+| | Fenster für `vol_sma` |
+|---|---|
+| Python (`wm_sar_mtf.py:288`, `levels_mtf.py:117`) | `bars[i-10 : i]` → die **10 Kerzen VOR** der aktuellen |
+| Pine v22/v23 (`ta.sma(volume,10)`) | Kerzen `i-9 .. i` → **inkl. der aktuellen** |
+
+Auf einer Vektorkerze ist das Volumen per Definition hoch — Pine mittelt diesen Spike
+mit hinein, die Schwelle `vol >= 1.5×SMA` steigt, das Signal faellt aus.
+**Python ist methodisch korrekt** (PVSRA/TBD: *"a 200% increase of the average of the
+PRIOR 10 candles to that one"*), Pine war falsch.
+
+**Quantifiziert (4J BTC 15m, Roh-BCR ohne Gate):** Python 2039 · Pine 1893 —
+1867 identisch, **172 nur Python**, 26 nur Pine (~8% Divergenz).
+
+**Warum daraus zwei verschiedene offene Trades wurden (Kettenreaktion):**
+1. 18.08 22:00 feuert nur bei Python → Engine geht long.
+2. `BCR_FLAT=1` (BCR nur wenn flat) unterdrueckt daraufhin bei Python den Roh-BCR vom
+   **19.08 14:00 — den Python ebenfalls erkennt** (Detektor-Ebene identisch!), er
+   erreicht nur nie das Gate und steht deshalb nicht im Journal.
+3. Pine hatte den 18.08-Trade nicht, war flat → nahm 19.08 14:00.
+
+Eine Ursache, beide Beobachtungen. **Fix: Pine v24** — `ta.sma(volume, 10)[1]` an beiden
+Stellen (Struktur-Level in `f_struct` + BCR `vsma10`). Python bleibt UNVERAENDERT
+(es war korrekt) → keine Neu-Validierung der Engine noetig.
+
+**Lehre fuer kuenftige Ports:** `ta.sma(x, n)` in Pine ist *inklusive* aktueller Bar;
+Python-Slices `[i-n:i]` sind *exklusiv*. Bei jeder Schwellenwert-Logik (Vektor, Volumen,
+Ranges) explizit pruefen — der Unterschied ist genau dort am groessten, wo der aktuelle
+Bar den Ausreisser darstellt, also genau am Signal.
+
 ## Standardvorgehen bei "TV zeigt X, Python zeigt Y"
 
 1. **User nach exaktem Datum + Uhrzeit fragen** — auf TV auf die fragliche Bar tippen, unten steht "Di 18 Aug '26 10:00" oder ähnlich. Auch O/H/L/C-Werte der Cursor-Bar notieren lassen. **Datum-Verwechslung ist häufig.**
