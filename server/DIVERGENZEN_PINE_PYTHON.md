@@ -37,6 +37,27 @@ in Pine und Python unterschiedlich urteilen.
 Fix v23: manuelle Verankerung via `hour(time,"America/New_York")==17`-Reset
 (`f_prevExtremes()`), plus die vier Levels sind jetzt als Linien geplottet.
 
+### Nachrechnung am 18.08-Fall (19.8., frische Kerzen bis 19.08 22:15)
+
+`server/pine_parity_check.py 2026-08-18T10:00` liefert:
+
+```
+18.08 10:00 mw/wt dir=+1 @64130.4 -> gate=er_low   (bias4=1 l1=0 l4=2 d1=1 er=0.082)
+10:00  v23/Python 0.082 ZU | v22-alt 0.177 ZU    *SIGNAL*
+10:30  v23/Python 0.082 ZU | v22-alt 0.209 OFFEN  <-- Divergenz
+10:45  v23/Python 0.082 ZU | v22-alt 0.210 OFFEN  <-- Divergenz
+```
+
+**Wichtig — ehrlicher Zwischenstand:** Am Signal-Bar 10:00 blocken BEIDE Semantiken
+(0.082 bzw. 0.177, beide < 0.20). Die HTF-Semantik erklaert ein `L WT`-Label um
+**10:00 also NICHT**. Sie erklaert es erst ab **10:30/10:45** (v22-alt OFFEN) — dort
+gibt es aber gar kein M/W-Rohsignal. Fuer das beobachtete Label bleiben damit offen:
+
+1. **Chart-Symbol**: `BINANCE:BTCUSDT.P` (Perp) vs Spot `BINANCE:BTCUSDT` —
+   andere Kerzen, anderer 50-EMA-Touch, andere M/W-Detektion. **Haeufigste Ursache.**
+2. **Pine-Version im Chart** war evtl. aelter als v22.
+3. Uhrzeit-/Datums-Verwechslung (auf TV die Bar antippen, Zeitstempel notieren).
+
 **Konsequenz:** Ab v23 sollten Pine-Entry-Labels und Journal-`pass`-Signale
 uebereinstimmen. Bleibt eine Abweichung, ist es ein NEUER Fall → unten eintragen.
 Der Strategy-Tester zeigt ab v23 andere (korrektere) Zahlen als v22 — erwartet.
@@ -59,6 +80,18 @@ Der Strategy-Tester zeigt ab v23 andere (korrektere) Zahlen als v22 — erwartet
    - `bcrWin = 120` · `bcrTol = 0.0015` · `bcr200Tol = 0.002` · `bcrVec = 1.5` · `bcr200On = true` · `bcrWtOnly = true`
 4. **Struktur-Params**: `Rev1D = 0.066` · `Rev4H = 0.033` · `Rev1H = 0.0165` · `ER_N = 30` · `ER_MIN = 0.2`
 5. **Bar-Confirm**: Pine kann bei OFFENER Kerze Marker anzeigen; Python wartet auf close.
+
+## Werkzeug: `server/pine_parity_check.py` (ab 19.8., ERSTE Anlaufstelle)
+
+```bash
+python3 server/pine_parity_check.py 2026-08-18T10:00            # Zeit in UTC+2
+python3 server/pine_parity_check.py 2026-08-18T10:00 --window 4 # groesseres Fenster
+```
+
+Gibt aus: Roh-Signale + Gate-Grund + Kontext im Fenster, ER unter BEIDEN Semantiken
+(v23/Python vs v22-alt) und einen Befund-Block mit der naechsten Verdaechtigen-Liste.
+Erst wenn das Tool "beide Semantiken blocken identisch" meldet, die Checkliste unten
+durchgehen (Symbol/Version/Inputs).
 
 ## Query-Snippet (Direkt-Check `LAST_SIGNALS` + Journal)
 
