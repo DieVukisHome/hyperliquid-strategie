@@ -16,11 +16,46 @@ Nutzung:
 
 Env: SYMBOL (BTCUSDT) | WATCH_LOOKBACK_D (1460) | EVAL_ON (1) | SERVER_DIR | CATCHUP_BARS (8)
 """
-import os, sys, csv, json, time, sqlite3, argparse, subprocess, urllib.request
+import os, sys, csv, json, time, sqlite3, argparse, subprocess, urllib.request, urllib.error
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
 sys.path.insert(0, REPO)
+
+_ENV_FILE = os.path.expanduser('~/.hermes/.env')
+if os.path.exists(_ENV_FILE):
+    with open(_ENV_FILE) as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if _line and not _line.startswith('#') and '=' in _line:
+                _k, _, _v = _line.partition('=')
+                os.environ.setdefault(_k.strip(), _v.strip())
+
+TG_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+TG_CHAT  = os.environ.get('TELEGRAM_TRADING_CHAT', '')
+PASS_GATES = {'pass', 'pass_flip', 'samedir_trail'}
+
+
+def notify_telegram(text):
+    if not TG_TOKEN or not TG_CHAT:
+        return
+    try:
+        req = urllib.request.Request(
+            f'https://api.telegram.org/bot{TG_TOKEN}/sendMessage',
+            data=json.dumps({'chat_id': TG_CHAT, 'text': text}).encode(),
+            headers={'Content-Type': 'application/json'})
+        urllib.request.urlopen(req, timeout=15).read()
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
+        print(f'[watcher] Telegram send failed: {e}')
+
+
+def fmt_signal_tg(s):
+    icon = '🟢' if s.get('gate') in PASS_GATES else '📡'
+    side_arrow = '⬆️LONG' if s['dir'] > 0 else '⬇️SHORT'
+    sl = s.get('sl_ref')
+    sl_line = f"\nSL-Ref: {sl:.1f}" if sl else ''
+    return (f"{icon} v22 Signal · {s['tag']}/{s.get('side','?')} · {side_arrow}\n"
+            f"Gate: {s['gate']} · Px: {s['px']:.1f}{sl_line}")
 
 SYMBOL    = os.environ.get('SYMBOL', 'BTCUSDT')
 LOOKB_D   = int(os.environ.get('WATCH_LOOKBACK_D', '1460'))
@@ -234,6 +269,10 @@ def cycle(csv_path, no_fetch=False):
     for s in new:
         print(f"[watcher] NEUES EVENT: {s['gate']} {s['tag']}/{s.get('side','?')} "
               f"dir={s['dir']} @{s['px']}")
+        # Reihenfolge (nach Ausfall 18.08.): erst Queue-File + Evaluator, dann
+        # Telegram-Signal. Falls Watcher-Prozess zwischen DB-Commit und
+        # Signal-Telegram abschmiert, ist das Verdict trotzdem generiert (oder
+        # zumindest die Queue-Datei da für Recovery).
         ev_path = os.path.join(QUEUE_DIR, f"{s['t']}_{s['tag']}_{s['dir']}.json")
         with open(ev_path, 'w') as f:
             json.dump(s, f, indent=1)
@@ -243,6 +282,7 @@ def cycle(csv_path, no_fetch=False):
                                timeout=600)
             except Exception as e:   # fail-open: Bewerter-Fehler blockiert nie den Watcher
                 print(f"[watcher] Evaluator-Fehler (fail-open): {e}")
+        notify_telegram(fmt_signal_tg(s))
     with open(HEARTBEAT, 'w') as f:
         f.write(str(int(time.time())))
     con.close()
