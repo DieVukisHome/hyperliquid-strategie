@@ -34,7 +34,7 @@ REV_WICK    = 0.50
 REV_BODY    = 0.40
 TP1_R       = float(os.environ.get('TP1_R','100.0'))   # 100 = praktisch nie -> reine Runner
 TP1_FRAC    = float(os.environ.get('TP1_FRAC','0.75')) # Anteil der bei TP1 geschlossen wird
-COMMISSION  = 0.00045
+COMMISSION  = float(os.environ.get("COMMISSION","0.00045"))
 INIT_CAP    = 10000.0
 LOOKBACK_D  = 1600
 RISK        = float(os.environ.get('RISK','0.01'))
@@ -63,7 +63,13 @@ BCR_WT_ONLY = os.environ.get('BCR_WT_ONLY','0')=='1'    # BCR = Continuation-Pat
 BE_R        = float(os.environ.get('BE_R','0'))         # SL->Entry sobald +X R erreicht (0=aus)
 TS_D        = float(os.environ.get('TS_D','0'))         # Time-Stop: nach X Tagen unter TS_R -> raus (0=aus)
 TS_R        = float(os.environ.get('TS_R','1.0'))       # R-Schwelle fuer den Time-Stop
+TS_MFE_MAX  = float(os.environ.get('TS_MFE_MAX','0'))   # Runner-Schutz: Time-Stop NUR wenn der Trade nie ueber X R stand (0=aus)
+SL_BUF      = float(os.environ.get('SL_BUF','0'))       # Stop-Hunt-Puffer: SL um X% hinter die Referenz legen (0=aus)
+SL_CLOSE    = os.environ.get('SL_CLOSE','0')=='1'       # Stop erst bei CLOSE jenseits SL (Docht-Hunts ignorieren), Exit zum Close
+SL_MIN      = float(os.environ.get('SL_MIN','0'))       # Mindest-Stop-Abstand in % vom Preis (nur ULTRA-enge Stops werden geweitet; 0=aus)
+SL_MIN_SKIP = os.environ.get('SL_MIN_SKIP','0')=='1'    # statt weiten: Trade mit zu engem Stop ueberspringen
 EXIT_RAW    = os.environ.get('EXIT_RAW','off')          # off|mw|all — Gegensignal schliesst Position auch wenn Entry-Gate es blockt
+EXIT_RAW_MINR = float(os.environ.get('EXIT_RAW_MINR','0'))  # Runner-Schutz: rohes Gegensignal schliesst NUR ab X R Buchgewinn (0=immer)
 TP1R_ENV    = float(os.environ.get('TP1_R','0'))        # >0: TP1 bei X R (Anteil TP1_FRAC), sonst reiner Runner
 TP1F_ENV    = float(os.environ.get('TP1_FRAC','0'))
 
@@ -252,7 +258,7 @@ class Trade:
 
 class Lot:
     __slots__ = ("dir","entry","entry_t","sl","sl_init","qty_total","qty_open",
-                 "realized","partial_done","tp1","eq_entry","risk_pu","tag")
+                 "realized","partial_done","tp1","eq_entry","risk_pu","tag","mfe_r")
 
 
 def run(bars, log_window=None):
@@ -352,6 +358,12 @@ def run(bars, log_window=None):
         return RO_LOW if sum(tt.r for tt in trades[-RO_K:])< RO_TH else 1.0
     def open_lot(d, px, t, sl0, tag=''):
         nonlocal equity
+        if SL_BUF > 0:
+            sl0 = sl0 * (1 - SL_BUF) if d == 1 else sl0 * (1 + SL_BUF)
+        if SL_MIN > 0 and abs(px - sl0) < px * SL_MIN:
+            if SL_MIN_SKIP:
+                return
+            sl0 = px * (1 - SL_MIN) if d == 1 else px * (1 + SL_MIN)
         risk_pu = abs(px - sl0)
         if risk_pu <= 0:
             return
@@ -362,6 +374,7 @@ def run(bars, log_window=None):
         L.dir = d; L.entry = px; L.entry_t = t; L.sl = sl0; L.sl_init = sl0
         L.qty_total = q; L.qty_open = q; L.realized = 0.0; L.partial_done = False
         L.tp1 = px + d * TP1_R * risk_pu; L.eq_entry = equity; L.risk_pu = risk_pu
+        L.mfe_r = 0.0
         lots.append(L)
         Lg(t, f"OPEN {'LONG' if d==1 else 'SHORT'} #{len(lots)} @{px:.1f} SL{sl0:.1f} TP1 {L.tp1:.1f}")
 
@@ -397,9 +410,14 @@ def run(bars, log_window=None):
 
         # 1) Stops & TP1 für alle Lots
         for L in lots[:]:
-            hit = (L.dir == 1 and b.l <= L.sl) or (L.dir == -1 and b.h >= L.sl)
+            if SL_CLOSE:
+                hit = (L.dir == 1 and b.c <= L.sl) or (L.dir == -1 and b.c >= L.sl)
+                _px_exit = b.c          # kein Ruhe-Order: Exit zum Schlusskurs
+            else:
+                hit = (L.dir == 1 and b.l <= L.sl) or (L.dir == -1 and b.h >= L.sl)
+                _px_exit = L.sl
             if hit:
-                close_lot(L, L.sl, b.t, "SL" if not L.partial_done else "BE")
+                close_lot(L, _px_exit, b.t, "SL" if not L.partial_done else "BE")
                 lots.remove(L); continue
             if not L.partial_done:
                 if (L.dir == 1 and b.h >= L.tp1) or (L.dir == -1 and b.l <= L.tp1):
@@ -409,9 +427,12 @@ def run(bars, log_window=None):
                          (L.dir == -1 and b.l <= L.entry - BE_R*L.risk_pu)
                 if be_hit:
                     L.sl = max(L.sl, L.entry) if L.dir == 1 else min(L.sl, L.entry)
+            if L.risk_pu > 0:
+                L.mfe_r = max(L.mfe_r, ((b.h - L.entry) if L.dir == 1 else (L.entry - b.l)) / L.risk_pu)
             if TS_D > 0 and (b.t - L.entry_t) >= TS_D*86400 and L.risk_pu > 0:
                 _ur = (b.c - L.entry) * L.dir / L.risk_pu
-                if _ur < TS_R:
+                _prot = TS_MFE_MAX > 0 and L.mfe_r >= TS_MFE_MAX   # Runner-Schutz
+                if _ur < TS_R and not _prot:
                     close_lot(L, b.c, b.t, "TimeStop"); lots.remove(L); continue
         if not lots:
             prevM_high = prevW_low = None
@@ -689,7 +710,9 @@ def run(bars, log_window=None):
                 _d0 = lots[0].dir
                 _rawL = wev or (EXIT_RAW == 'all' and bcrL)
                 _rawS = mev or (EXIT_RAW == 'all' and bcrS)
-                if (_d0 == 1 and _rawS) or (_d0 == -1 and _rawL):
+                _L0 = lots[0]
+                _urR = ((b.c - _L0.entry) * _L0.dir / _L0.risk_pu) if _L0.risk_pu > 0 else 0.0
+                if ((_d0 == 1 and _rawS) or (_d0 == -1 and _rawL)) and _urR >= EXIT_RAW_MINR:
                     for L in lots[:]:
                         close_lot(L, b.c, b.t, "RawFlip")
                     lots.clear()
