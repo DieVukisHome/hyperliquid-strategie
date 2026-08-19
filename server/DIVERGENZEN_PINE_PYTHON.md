@@ -48,7 +48,26 @@ Fix v23: manuelle Verankerung via `hour(time,"America/New_York")==17`-Reset
 10:45  v23/Python 0.082 ZU | v22-alt 0.210 OFFEN  <-- Divergenz
 ```
 
-**Wichtig — ehrlicher Zwischenstand:** Am Signal-Bar 10:00 blocken BEIDE Semantiken
+### AUFGELÖST (19.8. abends, per Chart-Screenshot)
+
+Der Chart zeigt `Bitcoin / TetherUS PERPETUAL CONTRACT · 15 · Binance` → **Symbol korrekt**,
+Spot-Hypothese erledigt. Und der entscheidende Punkt: das grüne **`W` ist KEIN Entry-Label,
+sondern der ROH-Signal-Marker** `plotshape(wSig, "W", ...)` — er feuert per Design
+unabhängig vom Gate. Dasselbe gilt für die `B`-Dreiecke (BCR roh).
+
+Python hatte an derselben Bar **dasselbe** Roh-Signal: `18.08 10:00 mw/wt dir=+1 @64130.4,
+gate=er_low (er=0.082)`. **Also volle Übereinstimmung — es gab nie eine Divergenz.**
+Die Verwechslung war: Roh-Marker (`W`, `M`, `B`) vs Entry-Label (`L WT` / `S REV L3`).
+
+**Merkregel für den Chart:**
+| Marker | Bedeutung | Engine tradet? |
+|---|---|---|
+| grünes `W` / rotes `M` | M/W-Formation erkannt (roh, ungated) | nur wenn zusätzlich Entry-Label |
+| `B`-Dreieck (aqua/magenta) | BCR-Retest erkannt (roh, ungated) | dito |
+| **`L WT` / `L REV Lx` / `S ...`** | **Gate bestanden → Entry** | **ja** |
+| `Lx` / `Sx` + Prozentzahl | TradingView-Strategy-Exit | — |
+
+**Historischer Zwischenstand (Analyse-Weg, bewusst erhalten):** Am Signal-Bar 10:00 blocken BEIDE Semantiken
 (0.082 bzw. 0.177, beide < 0.20). Die HTF-Semantik erklaert ein `L WT`-Label um
 **10:00 also NICHT**. Sie erklaert es erst ab **10:30/10:45** (v22-alt OFFEN) — dort
 gibt es aber gar kein M/W-Rohsignal. Fuer das beobachtete Label bleiben damit offen:
