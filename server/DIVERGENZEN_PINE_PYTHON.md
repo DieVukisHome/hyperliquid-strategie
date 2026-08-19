@@ -114,6 +114,12 @@ Eine Ursache, beide Beobachtungen. **Fix: Pine v24** — `ta.sma(volume, 10)[1]`
 Stellen (Struktur-Level in `f_struct` + BCR `vsma10`). Python bleibt UNVERAENDERT
 (es war korrekt) → keine Neu-Validierung der Engine noetig.
 
+**STATUS 19.8. abends: v24 live in Chrome verifiziert** — Chart zeigt
+"TBD W/M SAR v24 Champion" und die korrekten Signale (u.a. den BCR-Long 18.08 22:00,
+der unter v22/v23 fehlte). Pine ↔ Python damit auf Detektor-Ebene deckungsgleich.
+Pine-Versionsstand: v24 = Paritaets-Stand. Bei kuenftigen TV-Meldungen ZUERST
+`pine_parity_check.py` laufen lassen, dann Marker-Typ pruefen (Roh vs Entry, Tabelle oben).
+
 **Lehre fuer kuenftige Ports:** `ta.sma(x, n)` in Pine ist *inklusive* aktueller Bar;
 Python-Slices `[i-n:i]` sind *exklusiv*. Bei jeder Schwellenwert-Logik (Vektor, Volumen,
 Ranges) explizit pruefen — der Unterschied ist genau dort am groessten, wo der aktuelle
