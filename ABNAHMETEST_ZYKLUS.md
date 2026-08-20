@@ -241,9 +241,13 @@ Stufe 1 endet an der 200er, **wenn diese in Laufrichtung liegt**. Belegt abwärt
 auf 1h (Fall C) und abwärts auf 4h (Fall E). Lag die 200er hinter dem Preis
 (Aufwärtszyklus Fall C), endete die Stufe stattdessen an der SVC.
 
-**Regel 16 — P3 muss nicht sofort eindeutig sein:** Zwei P3-Kandidaten können
-nebeneinander stehen (hier 05:45 und 13:45). Erst der nachfolgende **50er-Break
-mit Volumen** (3,38×) entscheidet, welcher gilt.
+**Regel 16 — P3 ist IMMER eindeutig: das erste Kerzenbild, das die Kriterien erfüllt.**
+Es dient dem aggressiven M/W-Entry. Hält es nicht, ist der Trade eben falsch und die
+Maschine sucht das nächste P3 — kein Nachverhandeln, keine Kandidatenliste.
+(Die „P3?"-Markierungen in Wookies Charts sind sein diskretionärer Rückblick, keine
+Engine-Regel. Mehrdeutigkeit lässt sich nicht scripten.) Die bestehende Engine
+verhält sich bereits richtig: im Mai-Fall nahm sie von zwei gültigen Inverted Hammern
+(11.05 18:00 und 20:00) den früheren.
 
 **Regel 17 — Größe des Board Meetings bestimmt die Zahl der Kindstufen:** Reicht
 der Retrace nur bis zur Eltern-50er, genügt EINE Kindstufe (Fall D). Läuft er bis
