@@ -111,6 +111,89 @@ neues 1h-P1 des Abwärtszyklus. Danach 1h-P3 am 11.05 18:00 bzw. 20:00.
 
 ---
 
+## Fall D — 12./13.05.2026, Fortsetzung von Fall C (NICHT lehrbuchmäßig)
+
+Wookies eigener „nicht-textbook"-Fall. Zeigt die Fraktalität über drei Ebenen und
+den Unterschied zwischen Reset-M und Reversal-M.
+
+**Nach dem 1h-P3 (11.05 20:00) — 1h-Stufe 1 = drei 15m-Drop-Level:**
+
+| 15m | Zeit | Tief | Kerze |
+|---|---|---|---|
+| DL 1 | 12.05 03:30 | 80.661 | Docht_u 55%, Body 45%, **Vol 9,72×** |
+| DL 2 | 12.05 13:15 | 80.444 | Docht_u 56%, Vol 1,36× |
+| DL 3 | 12.05 18:45 | 79.801 | Docht_u 38%, Vol 3,16× |
+
+Fallende Tiefs ✓. **Keine** der drei erfüllt die strenge SVC-Definition (Body zu groß /
+Volumen zu klein / Docht zu kurz) — auf 15m reicht die **Ablehnung an sich**.
+Board Meeting dazwischen: 12.05 **08:15** Rücklauf an die 15m-50er (Hoch 81.270 vs
+50er 81.334 = **−0,08%**) — Toleranz nötig, exakte Berührung wird nicht erreicht.
+
+**Parallel auf 1h:** dieselbe Bewegung ist EINE Stufe. Die gelbe 200er wurde am
+12.05 15:00 erreicht (Tief 80.361 vs 200er 80.394), Tief 79.801 um 18:45 = „Stufe 1 am 1h".
+
+**Board Meeting der 1h (auf 15m):** nur EINE Gegenstufe, nicht drei —
+
+| | Zeit | Preis | |
+|---|---|---|---|
+| P1 vom W | 12.05 18:45 | 79.801 | = das DL-3-Tief |
+| P3 vom W | 13.05 02:00 | 80.364 | |
+| **RL 1** (einzige Rise-Stufe) | 13.05 03:45 | 81.168 | = Retest der 1h-50er |
+| P1 vom Reset M | 13.05 05:45 | 81.268 | |
+| P3 vom Reset M | 13.05 11:00 | **81.270** | Vol 4,30× — 2 $ ÜBER P1 = „Final Damage" |
+
+**Dann drei schnelle Bursts abwärts mit steigendem Volumen (= 1h-Stufe 2):**
+
+| | Tief | Zeit | Segment-Volumen |
+|---|---|---|---|
+| Burst 1 | 80.410 | 13.05 14:00 | 12.287 |
+| Burst 2 | 79.432 | 13.05 16:00 | 34.141 ↑ |
+| Burst 3 | 78.714 | 13.05 18:00 | 40.489 ↑ |
+
+Monotone Volumen-Progression L1 < L2 < L3 = Klimax (steckt als `VFRAC` bereits in
+`cycle_counter.py`, bisher ungenutzt).
+
+**Drei neue Regeln aus Fall D:**
+
+11. **Das Board Meeting der Elternebene kann auf dem Kind aus EINER Stufe bestehen** —
+    „eine Elternstufe = drei Kindstufen" gilt für die Impulsphase, nicht fürs Board Meeting.
+12. **Reset-M und Reversal-M sind dasselbe Muster, unterschieden allein durch die
+    Zyklusposition.** Im Board Meeting (nach L1/L2) startet es die nächste Stufe;
+    nach drei fertigen Stufen kehrt es den Elternzyklus um. Deshalb ist die
+    Stufenzählung die Voraussetzung für die Bedeutungszuweisung — und deshalb ist
+    BCR immer Continuation (v21-Befund), M/W aber beides.
+13. **Volumen-Progression über die Stufen** (L1 < L2 < L3) als Klimax-Signatur.
+
+**Toleranz-Lehre:** Retest-Prüfungen brauchen ~0,15% Toleranz (wie BCR_TOL), nicht
+exakte Berührung. Mit Null-Toleranz meldet die Prüfung fälschlich „kein Board Meeting".
+
+---
+
+## Die drei TBD-Elemente — und was der Engine fehlt
+
+Reihenfolge nach Bedeutung für den Market Maker:
+
+1. **Muster** — M/W, Rises/Drops, Umkehrungen, Konsolidierungen. Zweck: Trader am
+   ersten Peak in die falsche Richtung locken, dann schnell drehen.
+2. **Timing** — valide M/W nur in den **Gap-Zeiten und Session-Wechseln** (CME-Zeiten,
+   New York). **Dead Zone 17:00–20:00 NY**: MM offline, keine Trades.
+3. **Levels** — aggressive Bursts mit Vektorvolumen; Drei-Level-/Drei-Tage-Zyklus;
+   als objektive Niveaus ausschließlich HOW/LOW und HOD/LOD.
+
+Alle drei müssen zusammenpassen. Muster ohne Timing oder ohne drei fertige Levels
+= meist eine MM-Falle.
+
+**Stand der Engine:** Muster ✓ (M/W + BCR) · Levels ✓ (Stufenzähler + HOW/LOW/HOD/LOD
+als Roadblock) · **Timing FEHLT VOLLSTÄNDIG.** Die Engine prüft um 03:00 nachts
+dieselben Bedingungen wie zum US-Open. Wichtig: Das ist NICHT der im Juni verworfene
+Stunden-Filter (reines Data-Mining), sondern kausal begründet (MM-Übergabe) — genau
+das Kriterium, das Wookie selbst für legitime Zeitfilter aufgestellt hat.
+
+**Arbeitsteilung laut Wookie:** Das **Timing steuert die Entries**, die **Stufen sagen,
+WO man nach M/W sucht.**
+
+---
+
 ## ABGELEITETE ZYKLUS-REGELN (gültig über alle drei Fälle)
 
 1. **Eine Stufe endet an der SVC** — Rejection-Kerze mit Docht ≳50% gegen die
