@@ -64,6 +64,93 @@ Anker/Trigger genutzt. Unterschied zu Fall A: dort sitzt die SVC nur auf 4h
 
 ---
 
+## Fall C — Mai 2026, 4h-M (Short-Seite, vollständigster Fall)
+
+**4h-P1 = Railroad Tracks statt SVC:**
+
+| Zeit | O→C | Range | Body | Vol | |
+|---|---|---|---|---|---|
+| 06.05 10:00 | 81.333 → 82.485 | 1.549 | 74% | **2,09×** | bull |
+| 06.05 14:00 | 82.485 → 81.656 | 1.436 | 58% | **1,76×** | bear |
+
+Zwei gegenläufige Vektorkerzen, Ranges zu 93% gleich, die zweite nimmt 72% des
+ersten Körpers zurück. Kein Docht → auf 4h **keine** SVC. **Eine Ebene tiefer schon:**
+1h 06.05 13:00 — Docht oben **56%**, Body 39%, Vol **2,42×**, Hoch **82.829** =
+exakt das 4h-P1-Hoch. Gleiches am 4h-P3 (10.05 22:00 Vol 4,79× bull / 11.05 02:00
+Vol 2,58× bear = Railroad; 1h 11.05 01:00 Docht 63%, Vol 1,61× = SVC).
+
+**1h-Abwärtszyklus (2 Stufen), mechanisch reproduziert:**
+
+```
+P1              06.05 13:00   82.829   (1h-SVC)
+Stufe 1 Ende    07.05 19:00   79.462   Tief an der 200er (79.499), Docht_u 48%
+Board Meeting   Hoch          80.332
+Stufe 2 bricht  08.05 04:00   unter 79.462
+Stufe 2 Tief    08.05 05:00   79.137   Hammer an der 200er (Docht_u 63%, Vol 1,23× — KEIN Vektor)
+```
+
+**1h-W danach:** P1 08.05 05:00 · P2 08.05 13:00 (Rücklauf an die 50er) ·
+P3 08.05 15:00 (Vol 2,35×).
+
+**1h-Aufwärtszyklus (3 Stufen) — hier zeigt sich die Kernregel:**
+
+| | Zeit | Hoch | Vol | Docht oben |
+|---|---|---|---|---|
+| Stufe 1 Ende | 09.05 06:00 | 80.642 | 1,89× | **94%** |
+| Stufe 2 Ende | 09.05 20:00 | 81.043 | 1,68× | **60%** |
+| Stufe 3 Ende | 11.05 01:00 | 82.460 | 1,61× | **63%** |
+
+Alle drei sind SVCs. **Keiner dieser Punkte trifft eine EMA** (auf keinem TF, ±0,4%) —
+die 200er lag längst hinter dem Preis. Die Extrema steigen monoton, dazwischen jeweils
+Rücklauf an die 50er.
+
+**Fraktale Verschränkung:** 11.05 01:00 ist gleichzeitig 1h-Stufe-3-Ende, 4h-P3 und
+neues 1h-P1 des Abwärtszyklus. Danach 1h-P3 am 11.05 18:00 bzw. 20:00.
+**Die Engine findet dieses M selbst:** `P3-Kerze 11.05 18:00, P1 = 82.460` ✓
+(Wookie nannte 20:00 — auch gültiger InvHammer mit 65% Docht; die Engine nimmt die frühere.)
+
+---
+
+## ABGELEITETE ZYKLUS-REGELN (gültig über alle drei Fälle)
+
+1. **Eine Stufe endet an der SVC** — Rejection-Kerze mit Docht ≳50% gegen die
+   Laufrichtung, Vektorvolumen typisch (auf 1h praktisch immer). **Nicht** an einer EMA.
+2. **Board Meeting** = der Rücklauf zur 50er nach dem Stufenende.
+3. **Folgestufe** = bricht das Extrem der Vorstufe.
+4. Die **200er ist bei Stufe 1 das Ziel, wenn sie in Laufrichtung liegt** — sie ist
+   nicht die Definition. (Abwärts im Mai-Fall: ja. Aufwärts: 200er lag hinter dem
+   Preis, Stufe endete trotzdem sauber an der SVC.)
+5. **P1 ist der Trap, nicht die Erschöpfung** — hat oft KEINE SVC-Signatur
+   (03.08: Docht 46% · 08.05: Vol 1,23× · 06.05 4h: Railroad ohne Docht).
+   Die Volumen-Signatur gehört zu P3.
+6. **Reversal-Kerzen sind nicht nur SVC.** Railroad Tracks (zwei gegenläufige
+   Vektorkerzen, die zweite nimmt die erste zurück) sind mechanisch dasselbe:
+   gefangenes Volumen am Extrem — nur über zwei Kerzen statt über einen Docht.
+   Häufig auf der nächsttieferen Ebene doch als SVC sichtbar.
+7. **Alle Timeframes scannen, dann über Confluence filtern.** Auf 1h gibt es fast
+   an jedem Stufenende eine SVC — gültig ist sie nur, wenn 4h oder 1D ebenfalls
+   ein Reversal zeigen. Dabei muss auf 1h **zurückgeschaut** werden, weil die
+   4h-Kerze zu dem Zeitpunkt oft noch nicht fertig ist.
+8. **Fraktal:** eine 4h-Stufe = drei 1h-Stufen. Kind-Stufe-3 = Eltern-P3 = neues
+   Kind-P1. Danach bildet das Kind ein M/W — nicht immer bilderbuchmäßig.
+9. Es gibt auch **V-Tops / V-Bottoms** statt M/W.
+10. P1 bleibt **fest** für den ganzen Zyklus; Reversal-M/W erst nach drei Stufen;
+    Failsafe: Close jenseits P1 vor L3 → Zyklus ungültig.
+
+---
+
+## Meine Fehler in dieser Analyse (zur Vermeidung von Wiederholung)
+
+- Die Stufe-1-Kette (50er → 200er → Abweisung → Retest) auf **alle** Stufen
+  angewendet. L2 zielt auf 800er/unrecovered Vektor, L3 ist choppy + SVC.
+- Den 50er-Rücklauf als Stufenende verbucht — er ist **P2** der Formation.
+- Ein TBD-Zitat über **TP-Ziele** als Zähl-Kriterium missbraucht und daraus
+  fälschlich eine „Mindest-Separation der EMAs" abgeleitet. Gibt es nicht.
+- Datum falsch gelesen (11.8. statt 11.5.) und daraufhin eine Nicht-Übereinstimmung
+  behauptet, die es nie gab. **Monat und Jahr immer gegenprüfen.**
+
+---
+
 ## SVC-Definition (aus beiden Fällen abgeleitet)
 
 **SVC = Hammer + Vektor** auf dem jeweiligen TF:
