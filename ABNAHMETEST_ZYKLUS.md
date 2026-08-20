@@ -169,6 +169,88 @@ exakte Berührung. Mit Null-Toleranz meldet die Prüfung fälschlich „kein Boa
 
 ---
 
+## Fall E — 13.–16.05.2026: die vollständige Kaskade über vier Ebenen
+
+Fortsetzung von Fall D. Hier schließt sich der fraktale Kreis; das ist der
+anspruchsvollste Abnahmetest, weil er nicht nur Vergangenheit reproduziert,
+sondern eine **Erwartung** für die Zukunft ableitet.
+
+**Board Meeting nach 1h-Stufe 2 (Retrace 13.–14.05), auf 15m:**
+
+| | Zeit | Preis | Vol |
+|---|---|---|---|
+| P1 vom W (= DL 3) | 13.05 18:00 | 78.714 | 1,58× |
+| P3 vom W? (1) | 14.05 05:45 | 78.869 | 1,95× |
+| RL 1 | 14.05 07:45 | 79.962 | 1,97× |
+| P3 vom W? (2) | 14.05 13:45 | 79.188 | 0,95× |
+| **50er-Break** | 14.05 15:15 | 80.042 | **3,38×** |
+| RL 2 | 14.05 17:00 | 81.135 | 2,12× |
+| RL 3 | 14.05 19:00 | 81.999 | 1,48× |
+
+Volumen der drei Rise-Bursts: 20.259 → 37.188 → 38.773 (**monoton steigend**).
+
+**Die Invalidierungs-Prüfung — knapp bestanden:**
+
+```
+Original 1h-P3 (Invalidierungs-Marke):  82.098,9
+P1 vom 15m-M (14.05 19:00):             81.999,0
+                                        ──────────
+                                          −99,9   →  KEINE Invalidierung
+```
+
+Hundert Dollar. Der 1h-Abwärtszyklus bleibt bei Stufe 2, der ganze Anstieg ist
+Board Meeting — kein neuer Zyklus.
+
+**Dann 15m-M und drei Stufen abwärts → 1h-Stufe 3 komplett:**
+
+| 1h-Stufe | Preis | Zeit |
+|---|---|---|
+| Stufe 1 | 79.801,0 | 12.05 18:45 |
+| Stufe 2 | 78.713,8 | 13.05 18:00 |
+| Stufe 3 | **77.601,8** | 16.05 10:00 |
+
+**Und der Kreis schließt sich auf 4h:**
+
+```
+16.05 10:00   Tief 77.602   4h-200er 77.793   Abstand −0,25%   ← 200er erreicht
+4h-P3 vom M   11.05 02:00   Hoch 82.350
+4h-Stufe 1    = −5,8% bis 77.602 (= 4h-200er)
+```
+
+**Drei 1h-Stufen = EINE 4h-Stufe**, und diese 4h-Stufe 1 endet exakt an der gelben
+4h-200er. Die vollständige Kaskade:
+
+```
+4h-P3 vom M         11.05 02:00   82.350
+  4h-Stufe 1                      77.602  (4h-200er, 16.05 10:00)
+    1h-Stufe 1                    79.801  (12.05 18:45)   ← je 3 15m-Stufen
+    1h-Stufe 2                    78.714  (13.05 18:00)
+    1h-Stufe 3                    77.602  (16.05 10:00)
+```
+
+**Wookies abgeleitete Erwartung:** Nach einer fertigen 4h-Stufe folgen noch zwei —
+also zuerst ein Board Meeting auf 4h (auf 1h sichtbar als Retrace mit **Reset-M**),
+dann 4h-Stufe 2 und 3.
+
+**Regel 14 — Invalidierung:** Bezugspunkt ist das **P3 der Elternebene**. Wird es
+nicht überschritten, bleibt die Zählung gültig, egal wie weit der Retrace läuft.
+Unterschreitung um Haaresbreite genügt (hier 0,12%).
+
+**Regel 15 — die 200er-Regel ist richtungsabhängig, nicht ebenenspezifisch:**
+Stufe 1 endet an der 200er, **wenn diese in Laufrichtung liegt**. Belegt abwärts
+auf 1h (Fall C) und abwärts auf 4h (Fall E). Lag die 200er hinter dem Preis
+(Aufwärtszyklus Fall C), endete die Stufe stattdessen an der SVC.
+
+**Regel 16 — P3 muss nicht sofort eindeutig sein:** Zwei P3-Kandidaten können
+nebeneinander stehen (hier 05:45 und 13:45). Erst der nachfolgende **50er-Break
+mit Volumen** (3,38×) entscheidet, welcher gilt.
+
+**Regel 17 — Größe des Board Meetings bestimmt die Zahl der Kindstufen:** Reicht
+der Retrace nur bis zur Eltern-50er, genügt EINE Kindstufe (Fall D). Läuft er bis
+knapp unter das Eltern-P3, sind es DREI (Fall E).
+
+---
+
 ## Die drei TBD-Elemente — und was der Engine fehlt
 
 Reihenfolge nach Bedeutung für den Market Maker:
