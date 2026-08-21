@@ -50,6 +50,9 @@ def form(b, d):
 
 HOEHER = {'15m': '1h', '1h': '4h', '4h': None}
 WICK_MIN = float(os.environ.get('WICK_MIN', '0.50'))
+VEC_MIN  = float(os.environ.get('VEC_MIN', '1.5'))     # Volumen-Spike markiert das Stufenende
+SPIKE_N  = int(os.environ.get('SPIKE_N', '3'))         # Spike darf N Kerzen vor dem Extrem liegen
+USE_VOLMAX = os.environ.get('USE_VOLMAX', '0') == '1'  # Variante: Bein-Volumenmaximum als Marker (getestet: schlechter)
 
 
 def zaehle_15m(bars, start_ts, d, ende_ts=None, p1_eltern=None, tf='15m'):
@@ -60,20 +63,32 @@ def zaehle_15m(bars, start_ts, d, ende_ts=None, p1_eltern=None, tf='15m'):
         hb2, _, _, vs2 = prep(bars, TF[ho])
         sec2 = TF[ho]
         idx2 = {x.t: j for j, x in enumerate(hb2)}
-    def docht_ok(j):
-        """Ablehnung auf der EIGENEN Ebene ODER auf der naechsthoeheren
-        (die signifikante Kerze sitzt auf der Ebene, die den Zyklus abschliesst)."""
+    def marker_ok(j, bein_von):
+        """Stufenende-Marker. ZWEI gleichwertige Signaturen (Wookie 20.8.):
+        (a) Ablehnungsdocht >= WICK_MIN auf eigener ODER naechsthoeherer Ebene, oder
+        (b) die Kerze mit dem HOECHSTEN VOLUMEN des Beins liegt am Extrem
+            (Fenster [j-SPIKE_N, j], weil kleine Wiggs nachlaufen duerfen).
+        „Die Volumen-Spikes helfen beim Zaehlen der Stufen." """
         w, _ = form(hb[j], d)
         if w >= WICK_MIN:
-            return True, w, 'eigen'
+            return True, w, 'Docht'
         if ho:
             t2 = (hb[j].t // sec2) * sec2
             if t2 in idx2:
                 w2, _ = form(hb2[idx2[t2]], d)
                 if w2 >= WICK_MIN:
-                    return True, w2, ho
+                    return True, w2, f'Docht {ho}'
+        if USE_VOLMAX and bein_von is not None and j > bein_von:
+            vols = [hb[k].v for k in range(bein_von, j + 1)]
+            if vols:
+                vmax = max(vols)
+                nah = [hb[k].v for k in range(max(bein_von, j - SPIKE_N), j + 1)]
+                if nah and max(nah) >= vmax:      # Bein-Maximum liegt am Extrem
+                    vx = hb[j].v / vs[j] if vs[j] else 0
+                    return True, max(w, 0.0), 'VolMax'
         return False, w, '-'
     out, stufe, phase = [], 0, 'IMPULS'
+    bein_von = None
     ziel_erreicht = False          # Stufe 1: 200er muss erreicht sein
     extrem = extrem_t = extrem_j = None
     bein_start = None
@@ -91,6 +106,7 @@ def zaehle_15m(bars, start_ts, d, ende_ts=None, p1_eltern=None, tf='15m'):
         if phase == 'IMPULS':
             if extrem is None:
                 bein_start = b.h if d < 0 else b.l
+                bein_von = j
             if extrem is None or (d < 0 and b.l < extrem) or (d > 0 and b.h > extrem):
                 extrem, extrem_t, extrem_j = (b.l if d < 0 else b.h), b.t, j
                 vol_seg = 0.0
@@ -107,7 +123,7 @@ def zaehle_15m(bars, start_ts, d, ende_ts=None, p1_eltern=None, tf='15m'):
             spanne = abs(bein_start - extrem)
             an_50 = (d < 0 and b.h >= e50[j] * (1 - TOL_50)) or (d > 0 and b.l <= e50[j] * (1 + TOL_50))
             fib_ok = spanne > 0 and rueck >= FIB_MIN * spanne
-            ok_d, w_used, wo = (docht_ok(extrem_j) if extrem_j is not None else (False, 0, '-'))
+            ok_d, w_used, wo = (marker_ok(extrem_j, bein_von) if extrem_j is not None else (False, 0, '-'))
             # Stufe 1: Lauf zur 200er + echter Retrace (50er + Fib).
             # Ab Stufe 2: Board Meeting darf FLACH sein -> Pause ohne neues Extrem genuegt.
             if stufe == 0:
@@ -157,7 +173,7 @@ def selftest(csv):
         print(f"\n### {f['name']}")
         for r in st[:6]:
             print(f"   {r['art']}  {U(r['t'])}  {r['px']:9,.0f}   "
-                  f"[Docht {r['docht']}% ({r['wo']}) Vol {r['vol']}x, best. {U(r['bestaetigt'])}]")
+                  f"[{r['wo']}, Docht {r['docht']}%, best. {U(r['bestaetigt'])}]")
         print("   → Abgleich:")
         for i, (lab, soll) in enumerate(f['soll']):
             ges += 1
